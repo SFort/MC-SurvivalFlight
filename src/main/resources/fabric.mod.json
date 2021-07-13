@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "survivalflight",
+  "version": "${version}",
+
+  "name": "Survival Flight",
+  "description": "",
+  "authors": [
+    "SFort"
+  ],
+  "contact": {
+    "sources": "https://github.com/SFort/MC-survivalflight"
+  },
+
+  "license": "MIT",
+
+  "environment": "*",
+  "mixins": [
+    "survivalflight.mixins.json"
+  ],
+  "entrypoints": {
+    "main": ["tf.ssf.sfort.survivalflight.Config"]
+  },
+  "depends": {
+    "fabricloader": "*",
+    "minecraft": "*"
+  }
+}
