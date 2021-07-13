@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
+import tf.ssf.sfort.survivalflight.Config;
 import tf.ssf.sfort.survivalflight.SPEA;
 
 import java.util.List;
@@ -23,8 +24,9 @@ public class Beacon {
             at = @At(value = "TAIL"
             ), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
     private static void onApplyPlayerEffects(World world, BlockPos blockPos, int i, @Nullable StatusEffect statusEffect, @Nullable StatusEffect statusEffect2, CallbackInfo info, double d, int y, int duration, Box bb, List<PlayerEntity> list) {
+        if (i>= Config.beaconLevel)
         for (PlayerEntity player : list)
             if (player instanceof ServerPlayerEntity)
-                ((SPEA) player).bf$beaconPing(bb, duration, i);
+                ((SPEA) player).bf$beaconPing(bb, duration);
     }
 }

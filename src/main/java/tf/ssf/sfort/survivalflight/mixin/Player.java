@@ -17,7 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import tf.ssf.sfort.survivalflight.Config;
 import tf.ssf.sfort.survivalflight.SPEA;
 
-//TODO use config plugin to reduce unused code
 @Mixin(ServerPlayerEntity.class)
 public abstract class Player extends PlayerEntity implements SPEA {
     @Shadow
@@ -30,15 +29,20 @@ public abstract class Player extends PlayerEntity implements SPEA {
 
     protected int bf$ticksLeft = 0;
     protected float bf$ticksXp = 0;
-    protected int bf$pingLevel = 0;
     protected Box bf$ping;
+    @Inject(method = "tick", at = @At("HEAD"))
+    private void onTick(CallbackInfo info) {
+        Config.tick.accept((ServerPlayerEntity)(Object)this);
+    }
+
+    @Shadow
+    public void sendAbilitiesUpdate() {
+    }
 
     @Override
-    public void bf$beaconPing(Box box, int duration, int level) {
-        if (bf$ping == null || box.getCenter().distanceTo(this.getPos()) < bf$ping.getCenter().distanceTo(this.getPos())) {
+    public void bf$beaconPing(Box box, int duration) {
+        if (bf$ping == null || box.getCenter().distanceTo(this.getPos()) < bf$ping.getCenter().distanceTo(this.getPos()))
             bf$ping = box;
-            bf$pingLevel = level;
-        }
         bf$ticksLeft = duration;
     }
 
@@ -47,16 +51,16 @@ public abstract class Player extends PlayerEntity implements SPEA {
         return this.interactionManager.getGameMode().isSurvivalLike();
     }
     @Override
-    public int bf$highestLevel(){
-        return bf$pingLevel;
+    public boolean bf$hasBeacon(){
+        return bf$ticksLeft > 0 && bf$ping != null && bf$ping.contains(getPos());
     }
-
+    @Override
     public void bf$fly() {
         PlayerAbilities abilities = getAbilities();
         abilities.allowFlying = true;
         sendAbilitiesUpdate();
     }
-
+    @Override
     public void bf$fall() {
         PlayerAbilities abilities = getAbilities();
         if (abilities.flying)
@@ -65,65 +69,31 @@ public abstract class Player extends PlayerEntity implements SPEA {
         abilities.flying = false;
         sendAbilitiesUpdate();
     }
-
-    @Inject(method = "tick", at = @At("HEAD"))
-    private void onTick(CallbackInfo info) {
-        if (Config.hasBeaconCondition) {
-            if (bf$ticksLeft > 0)
-                if ((bf$ping != null && bf$ping.contains(getPos())))
-                    if (Config.canFly.test((ServerPlayerEntity) (Object) this)) {
-                        if (Config.hasExperianceCondition) {
-                            if ((totalExperience > 0 || experienceLevel > 0) && !getAbilities().allowFlying)
-                                bf$fly();
-                            if (getAbilities().flying) {
-                                if (Config.ticksPerXP != 0) {
-                                    bf$ticksXp++;
-                                    if (bf$ticksXp >= Config.ticksPerXP) {
-                                        addExperience(-1);
-                                        bf$ticksXp = 0;
-                                    }
-                                }
-                                if (Config.xpPerTick != 0)
-                                    addExperience(-Config.xpPerTick);
-                                if (totalExperience == 0 && experienceLevel == 0)
-                                    bf$fall();
-                            }
-                        } else if (!getAbilities().allowFlying)
-                            bf$fly();
-                        bf$ticksLeft--;
-                        if (bf$ticksLeft == 0 && getAbilities().allowFlying)
-                            bf$fall();
-                    } else if (bf$isSurvivalLike() && getAbilities().allowFlying) {
-                        bf$ticksLeft = 0;
-                        bf$fall();
-                    }
-        }else{
-            if (Config.canFly.test((ServerPlayerEntity) (Object) this)) {
-                if (Config.hasExperianceCondition) {
-                    if ((totalExperience > 0 || experienceLevel > 0) && !getAbilities().allowFlying)
-                        bf$fly();
-                    if (getAbilities().flying) {
-                        if (Config.ticksPerXP != 0) {
-                            bf$ticksXp++;
-                            if (bf$ticksXp >= Config.ticksPerXP) {
-                                addExperience(-1);
-                                bf$ticksXp = 0;
-                            }
-                        }
-                        if (Config.xpPerTick != 0)
-                            addExperience(-Config.xpPerTick);
-                        if (totalExperience == 0 && experienceLevel == 0)
-                            bf$fall();
-                    }
-                } else if (!getAbilities().allowFlying)
-                    bf$fly();
-            } else if (bf$isSurvivalLike() && getAbilities().allowFlying) {
-                bf$fall();
+    @Override
+    public void bf$tickXP(){
+        if ((totalExperience > 0 || experienceLevel > 0) && !getAbilities().allowFlying)
+            bf$fly();
+        if (getAbilities().flying) {
+            if (Config.ticksPerXP != 0) {
+                bf$ticksXp++;
+                if (bf$ticksXp >= Config.ticksPerXP) {
+                    addExperience(-1);
+                    bf$ticksXp = 0;
+                }
             }
+            if (Config.xpPerTick != 0)
+                addExperience(-Config.xpPerTick);
+            if (totalExperience == 0 && experienceLevel == 0)
+                bf$fall();
         }
     }
-
-    @Shadow
-    public void sendAbilitiesUpdate() {
+    @Override
+    public void bf$tickBeacon(){
+        if (bf$ticksLeft>0)bf$ticksLeft--;
+    }
+    @Override
+    public void bf$checkBeacon(){
+        if (bf$ticksLeft == 0 && getAbilities().allowFlying)
+            bf$fall();
     }
 }

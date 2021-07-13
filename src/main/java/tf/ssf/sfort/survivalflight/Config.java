@@ -30,13 +30,26 @@
 		public static Logger LOGGER = LogManager.getLogger();
 		public static StatusEffect exit_effect = null;
 
-        public static Predicate<ServerPlayerEntity> canFly = (player) -> ((SPEA)player).bf$isSurvivalLike();
-        public static Consumer<ServerPlayerEntity> exit = (player) -> {};
+
+
         public static int xpPerTick = 0;
+		public static int beaconLevel = 0;
 		public static int ticksPerXP = 0;
 		public static boolean hasBeaconCondition = false;
         public static boolean hasExperianceCondition = false;
 
+		public static Predicate<ServerPlayerEntity> canFly = (player) -> ((SPEA)player).bf$isSurvivalLike();
+		public static Consumer<ServerPlayerEntity> exit = (player) -> {};
+
+		public static Consumer<ServerPlayerEntity> tick = (splayer)-> {
+			SPEA player = (SPEA) splayer;
+			if (Config.canFly.test(splayer)) {
+				if (!splayer.getAbilities().allowFlying)
+					player.bf$fly();
+			} else if (player.bf$isSurvivalLike() && splayer.getAbilities().allowFlying) {
+				player.bf$fall();
+			}
+		};
 
         @Override
 		public void onInitialize() {
@@ -83,6 +96,11 @@
 					exit_effect = SimpleRegistry.STATUS_EFFECT.get(new Identifier(ls[i].substring(0,indx)));
 					exit = exit.andThen((player) -> player.addStatusEffect(new StatusEffectInstance(exit_effect, duration)));
 				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
+                i+=2;
+				try{
+					beaconLevel = Integer.parseInt(ls[i]);
+				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
+				ls[i] = String.valueOf(beaconLevel);
 
                 if (hash != Arrays.hashCode(ls))
 				    Files.write(confFile.toPath(), Arrays.asList(ls));
@@ -103,14 +121,48 @@
                 LOGGER.log(Level.ERROR, MOD_ID +" failed to load script file\n"+e);
             }
             hasExperianceCondition = ticksPerXP != 0 || xpPerTick != 0;
+            if (hasExperianceCondition && hasBeaconCondition){
+            	tick = (splayer)->{
+            		SPEA player = (SPEA) splayer;
+					if (Config.canFly.test(splayer)) {
+						player.bf$tickXP();
+						player.bf$checkBeacon();
+					} else if (player.bf$isSurvivalLike() && splayer.getAbilities().allowFlying) {
+						player.bf$fall();
+					}
+					player.bf$tickBeacon();
+				};
+			}else if (hasExperianceCondition){
+				tick = (splayer)-> {
+					SPEA player = (SPEA) splayer;
+					if (Config.canFly.test(splayer)) {
+						player.bf$tickXP();
+					} else if (player.bf$isSurvivalLike() && splayer.getAbilities().allowFlying) {
+						player.bf$fall();
+					}
+				};
+			}else if (hasBeaconCondition){
+				tick = (splayer)-> {
+					SPEA player = (SPEA) splayer;
+					if (Config.canFly.test(splayer)) {
+						if (!splayer.getAbilities().allowFlying)
+							player.bf$fly();
+						player.bf$checkBeacon();
+					} else if (player.bf$isSurvivalLike() && splayer.getAbilities().allowFlying) {
+						player.bf$fall();
+					}
+					player.bf$tickBeacon();
+				};
+			}
         }
 
         public static final List<String> defaultDesc = Arrays.asList(
                 "^-Generate Script Help? [true] true | false",
                 "^-Xp consumed per tick [0] 0 - ..",
                 "^-Consume 1XP per X ticks [0] 0 - .. // if you prefer decimals/tick putting in for e.g.: 0.2 xp/t will auto translate",
-                "^-Apply effect to player on mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20"
-        );
+                "^-Apply effect to player on mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
+				"^-Required beacon level for beacon setting [0] 1-4"
+		);
 		public static final String scriptHelp = """
 						I decided to burn a day and make this mod stupidly configurable.
 						Lines are ignored.
@@ -123,16 +175,15 @@
 						"""
 						Available Conditions:
 						"""+
-				String.format("\t%-20s%-40s%s%n","beacon","- Minimum (closest) beacon level","int(1-4)")+
 				String.format("\t%-20s%-40s%s%n","level","- Minimum required player level","int")+
 				String.format("\t%-20s%-40s%s%n","min_height","- Minimum required player y height","int")+
 				String.format("\t%-20s%-40s%s%n","max_height","- Maximum required player y height","int")+
 				String.format("\t%-20s%-40s%s%n","hand","- Require item in main hand","ItemID")+
 				String.format("\t%-20s%-40s%s%n","offhand","- Require item in off hand","ItemID")+
-				String.format("\t%-20s%-40s%s%n","helm","- Require one of items in either hand","ItemID")+
-				String.format("\t%-20s%-40s%s%n","chest","- Require one of items in either hand","ItemID")+
-				String.format("\t%-20s%-40s%s%n","legs","- Require one of items in either hand","ItemID")+
-				String.format("\t%-20s%-40s%s%n","boots","- Require one of items in either hand","ItemID")+
+				String.format("\t%-20s%-40s%s%n","helm","- Require item as helmet","ItemID")+
+				String.format("\t%-20s%-40s%s%n","chest","- Require item as chestplate","ItemID")+
+				String.format("\t%-20s%-40s%s%n","legs","- Require item as leggings","ItemID")+
+				String.format("\t%-20s%-40s%s%n","boots","- Require item as boots","ItemID")+
 				String.format("\t%-20s%-40s%s%n","advancement","- Require advancement unlocked","AdvancementID")+
 				String.format("\t%-20s%-40s%s%n","effect","- Require potion effect","EffectID")+
 				String.format("\t%-20s%-40s%s%n","food","- Minimum required food","float")+
@@ -143,7 +194,8 @@
 				String.format("\t%-20s%s%n","in_lava","- Require being in lava")+
 				String.format("\t%-20s%s%n","on_fire","- Require being on fire")+
 				String.format("\t%-20s%s%n","using","- Require using items")+
-				String.format("\t%-20s%s%n","wet","- Require being wet")
+				String.format("\t%-20s%s%n","wet","- Require being wet")+
+				String.format("\t%-20s%s%n","beacon","- Require beacon")
 				;
 		private static void writeScriptHelp(Path path){
 			try {
@@ -161,15 +213,14 @@
 					case "on_fire"-> Entity::isOnFire;
 					case "wet"-> Entity::isWet;
 					case "using"-> LivingEntity::isUsingItem;
+					case "beacon"->{
+						hasBeaconCondition=true;
+						yield (player) -> (((SPEA)player).bf$hasBeacon());
+					}
 					default -> throw new IllegalStateException("Unexpected value while parsing bool predicate: " + in);
 				};
 			}else{
 				return switch (in.substring(0, colon)){
-					case "beacon"->{
-						int arg = Integer.parseInt(in.substring(colon + 1));
-						hasBeaconCondition=true;
-						yield (player) -> (((SPEA)player).bf$highestLevel()>=arg);
-					}
 					case "level" -> {
 						int arg = Integer.parseInt(in.substring(colon + 1));
 						yield (player) -> player.experienceLevel>=arg;
