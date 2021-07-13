@@ -2,7 +2,9 @@
 
 	import net.fabricmc.api.ModInitializer;
 	import net.fabricmc.loader.api.FabricLoader;
+	import net.minecraft.entity.Entity;
 	import net.minecraft.entity.EquipmentSlot;
+	import net.minecraft.entity.LivingEntity;
 	import net.minecraft.entity.effect.StatusEffect;
 	import net.minecraft.entity.effect.StatusEffectInstance;
 	import net.minecraft.item.Item;
@@ -113,37 +115,36 @@
 						I decided to burn a day and make this mod stupidly configurable.
 						Lines are ignored.
 						Available operations:
-							!Condition:value					- NOT
-							(Condition; Condition:value; ..)	- OR
-							[Condition; Condition:value; ..]	- AND
-							{Condition; Condition:value; ..}	- XOR
-												
+						"""+
+				String.format("\t%-60s%s%n","!Condition:value","- NOT")+
+				String.format("\t%-60s%s%n","(Condition; Condition:value; ..)","- OR")+
+				String.format("\t%-60s%s%n","[Condition; Condition:value; ..]","- AND")+
+				String.format("\t%-60s%s%n","{Condition; Condition:value; ..}","- XOR")+
+						"""
 						Available Conditions:
-						beacon		- Minimum (closest) beacon level			int(1-4)
-						level       - Minimum required player level				int
-						min_height  - Minimum required player height			int
-						max_height	- Maximum required player height			int
-						hand		- Require one of items in main hand			ItemID
-						offhand		- Require one of items in off hand			ItemID
-						hands		- Require one of items in either hand		ItemID
-						helm		- Require one of items in either hand		ItemID
-						chest		- Require one of items in either hand		ItemID
-						legs		- Require one of items in either hand		ItemID
-						boots		- Require one of items in either hand		ItemID
-						advancement	- Require advancement unlocked				AdvancementID
-						effect		- Require potion effect						EffectID
-						food		- Minimum required food						float
-						health		- Minimum required heath					float
-						full_hp		- Require full health
-						no_sprint	- Prohibit Sprinting
-						no_block	- Prohibit Blocking
-						no_lava		- Prohibit being in lava
-						no_fire		- Prohibit being on fire
-						no_use		- Prohibit using items
-						not_wet		- Prohibit being wet
-						
-						public List<Identifier> exit_effects;
-						""";
+						"""+
+				String.format("\t%-20s%-40s%s%n","beacon","- Minimum (closest) beacon level","int(1-4)")+
+				String.format("\t%-20s%-40s%s%n","level","- Minimum required player level","int")+
+				String.format("\t%-20s%-40s%s%n","min_height","- Minimum required player y height","int")+
+				String.format("\t%-20s%-40s%s%n","max_height","- Maximum required player y height","int")+
+				String.format("\t%-20s%-40s%s%n","hand","- Require item in main hand","ItemID")+
+				String.format("\t%-20s%-40s%s%n","offhand","- Require item in off hand","ItemID")+
+				String.format("\t%-20s%-40s%s%n","helm","- Require one of items in either hand","ItemID")+
+				String.format("\t%-20s%-40s%s%n","chest","- Require one of items in either hand","ItemID")+
+				String.format("\t%-20s%-40s%s%n","legs","- Require one of items in either hand","ItemID")+
+				String.format("\t%-20s%-40s%s%n","boots","- Require one of items in either hand","ItemID")+
+				String.format("\t%-20s%-40s%s%n","advancement","- Require advancement unlocked","AdvancementID")+
+				String.format("\t%-20s%-40s%s%n","effect","- Require potion effect","EffectID")+
+				String.format("\t%-20s%-40s%s%n","food","- Minimum required food","float")+
+				String.format("\t%-20s%-40s%s%n","health","- Minimum required heath","float")+
+				String.format("\t%-20s%s%n","full_hp","- Require full health")+
+				String.format("\t%-20s%s%n","sprinting","- Require Sprinting")+
+				String.format("\t%-20s%s%n","blocking","- Require Blocking")+
+				String.format("\t%-20s%s%n","in_lava","- Require being in lava")+
+				String.format("\t%-20s%s%n","on_fire","- Require being on fire")+
+				String.format("\t%-20s%s%n","using","- Require using items")+
+				String.format("\t%-20s%s%n","wet","- Require being wet")
+				;
 		private static void writeScriptHelp(Path path){
 			try {
 				Files.writeString(path, scriptHelp);
@@ -154,12 +155,12 @@
 			if(colon == -1){
 				return switch (in){
 					case "full_hp"->(player) -> player.getHealth()==player.getMaxHealth();
-					case "no_sprint"->(player) -> !player.isSprinting();
-					case "no_block"->(player) -> !player.isBlocking();
-					case "no_lava"->(player) -> !player.isInLava();
-					case "no_fire"->(player) -> !player.isOnFire();
-					case "not_wet"->(player) -> !player.isWet();
-					case "no_use"->(player)->!player.isUsingItem();
+					case "sprinting"-> Entity::isSprinting;
+					case "blocking"-> LivingEntity::isBlocking;
+					case "in_lava"-> Entity::isInLava;
+					case "on_fire"-> Entity::isOnFire;
+					case "wet"-> Entity::isWet;
+					case "using"-> LivingEntity::isUsingItem;
 					default -> throw new IllegalStateException("Unexpected value while parsing bool predicate: " + in);
 				};
 			}else{
@@ -196,10 +197,6 @@
 					case "boots" -> {
 						Item arg = getItem(in.substring(colon + 1));
 						yield (player) -> eq(arg, player.getEquippedStack(EquipmentSlot.FEET));
-					}
-					case "hands" -> {
-						Item arg = getItem(in.substring(colon + 1));
-						yield (player) -> eq(arg, player.getMainHandStack()) || eq(arg, player.getOffHandStack());
 					}
 					case "food" -> {
 						float arg = Float.parseFloat(in.substring(colon + 1));
