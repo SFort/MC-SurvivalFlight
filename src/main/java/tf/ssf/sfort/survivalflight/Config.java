@@ -25,7 +25,7 @@
 	import java.util.function.Consumer;
 	import java.util.function.Predicate;
 
-	public class Config implements ModInitializer {
+	public class Config implements ModInitializer, ScriptParser<ServerPlayerEntity> {
 		private static final String MOD_ID = "tf.ssf.sfort.survivalflight";
 		public static Logger LOGGER = LogManager.getLogger();
 		public static StatusEffect exit_effect = null;
@@ -201,145 +201,85 @@
 				Files.writeString(path, scriptHelp);
 			}catch (Exception e){ LOGGER.log(Level.WARN, MOD_ID +" #0\n"+e); }
 		}
-		private static Predicate<ServerPlayerEntity> getPredicate(String in){
-			int colon = in.indexOf(':');
-			if(colon == -1){
-				return switch (in){
-					case "full_hp"->(player) -> player.getHealth()==player.getMaxHealth();
-					case "sprinting"-> Entity::isSprinting;
-					case "blocking"-> LivingEntity::isBlocking;
-					case "in_lava"-> Entity::isInLava;
-					case "on_fire"-> Entity::isOnFire;
-					case "wet"-> Entity::isWet;
-					case "using"-> LivingEntity::isUsingItem;
-					case "beacon"->{
-						hasBeaconCondition=true;
-						yield (player) -> (((SPEA)player).bf$hasBeacon());
-					}
-					default -> throw new IllegalStateException("Unexpected value while parsing bool predicate: " + in);
-				};
-			}else{
-				return switch (in.substring(0, colon)){
-					case "level" -> {
-						int arg = Integer.parseInt(in.substring(colon + 1));
-						yield (player) -> player.experienceLevel>=arg;
-					}
-					case "hand" -> {
-						Item arg = getItem(in.substring(colon + 1));
-						yield (player) -> eq(arg, player.getMainHandStack());
-					}
-					case "offhand" -> {
-						Item arg = getItem(in.substring(colon + 1));
-						yield (player) -> eq(arg, player.getOffHandStack());
-					}
-					case "helm" -> {
-						Item arg = getItem(in.substring(colon + 1));
-						yield (player) -> eq(arg, player.getEquippedStack(EquipmentSlot.HEAD));
-					}
-					case "chest" -> {
-						Item arg = getItem(in.substring(colon + 1));
-						yield (player) -> eq(arg, player.getEquippedStack(EquipmentSlot.CHEST));
-					}
-					case "legs" -> {
-						Item arg = getItem(in.substring(colon + 1));
-						yield (player) -> eq(arg, player.getEquippedStack(EquipmentSlot.LEGS));
-					}
-					case "boots" -> {
-						Item arg = getItem(in.substring(colon + 1));
-						yield (player) -> eq(arg, player.getEquippedStack(EquipmentSlot.FEET));
-					}
-					case "food" -> {
-						float arg = Float.parseFloat(in.substring(colon + 1));
-						yield (player) -> player.getHealth()>=arg;
-					}
-					case "health" -> {
-						float arg = Float.parseFloat(in.substring(colon + 1));
-						yield (player) -> player.getHungerManager().getFoodLevel()>=arg;
-					}
-					case "height" -> {
-						float arg = Float.parseFloat(in.substring(colon + 1));
-						yield (player) -> player.getPos().y>=arg;
-					}
-					case "advancement" -> {
-						Identifier arg = new Identifier(in.substring(colon + 1));
-						yield (player) -> {
-							MinecraftServer server = player.getServer();
-							if (server == null) return false;
-							return player.getAdvancementTracker().getProgress(server.getAdvancementLoader().get(arg)).isDone();
-						};
-					}
-					case "effect" -> {
-						StatusEffect arg = SimpleRegistry.STATUS_EFFECT.get(new Identifier(in.substring(colon + 1)));
-						yield (player) -> player.hasStatusEffect(arg);
-					}
-					default -> throw new IllegalStateException("Unexpected value while parsing predicate: " + in);
-				};
-			}
+		@Override
+		public Predicate<ServerPlayerEntity> getPredicate(String in, String val){
+			return switch (in){
+				case "level" -> {
+					int arg = Integer.parseInt(val);
+					yield (player) -> player.experienceLevel>=arg;
+				}
+				case "hand" -> {
+					Item arg = getItem(val);
+					yield (player) -> eq(arg, player.getMainHandStack());
+				}
+				case "offhand" -> {
+					Item arg = getItem(val);
+					yield (player) -> eq(arg, player.getOffHandStack());
+				}
+				case "helm" -> {
+					Item arg = getItem(val);
+					yield (player) -> eq(arg, player.getEquippedStack(EquipmentSlot.HEAD));
+				}
+				case "chest" -> {
+					Item arg = getItem(val);
+					yield (player) -> eq(arg, player.getEquippedStack(EquipmentSlot.CHEST));
+				}
+				case "legs" -> {
+					Item arg = getItem(val);
+					yield (player) -> eq(arg, player.getEquippedStack(EquipmentSlot.LEGS));
+				}
+				case "boots" -> {
+					Item arg = getItem(val);
+					yield (player) -> eq(arg, player.getEquippedStack(EquipmentSlot.FEET));
+				}
+				case "food" -> {
+					float arg = Float.parseFloat(val);
+					yield (player) -> player.getHealth()>=arg;
+				}
+				case "health" -> {
+					float arg = Float.parseFloat(val);
+					yield (player) -> player.getHungerManager().getFoodLevel()>=arg;
+				}
+				case "height" -> {
+					float arg = Float.parseFloat(val);
+					yield (player) -> player.getPos().y>=arg;
+				}
+				case "advancement" -> {
+					Identifier arg = new Identifier(val);
+					yield (player) -> {
+						MinecraftServer server = player.getServer();
+						if (server == null) return false;
+						return player.getAdvancementTracker().getProgress(server.getAdvancementLoader().get(arg)).isDone();
+					};
+				}
+				case "effect" -> {
+					StatusEffect arg = SimpleRegistry.STATUS_EFFECT.get(new Identifier(val));
+					yield (player) -> player.hasStatusEffect(arg);
+				}
+				default -> throw new IllegalStateException("Unexpected value while parsing predicate: " + in);
+			};
+		}
+		@Override
+		public Predicate<ServerPlayerEntity> getPredicate(String in){
+			return switch (in) {
+				case "full_hp" -> (player) -> player.getHealth() == player.getMaxHealth();
+				case "sprinting" -> Entity::isSprinting;
+				case "blocking" -> LivingEntity::isBlocking;
+				case "in_lava" -> Entity::isInLava;
+				case "on_fire" -> Entity::isOnFire;
+				case "wet" -> Entity::isWet;
+				case "using" -> LivingEntity::isUsingItem;
+				case "beacon" -> {
+					hasBeaconCondition = true;
+					yield (player) -> (((SPEA) player).bf$hasBeacon());
+				}
+				default -> throw new IllegalStateException("Unexpected value while parsing bool predicate: " + in);
+			};
 		}
 		private static Item getItem(String id){
 			return Registry.ITEM.get(new Identifier(id));
 		}
 		private static boolean eq(Item required, ItemStack current){
 			return required != null && required == current.getItem();
-		}
-
-		private static Predicate<ServerPlayerEntity> ScriptParse(String in){
-			Deque<Integer> deque = new ArrayDeque<>();
-			List<Predicate<ServerPlayerEntity>> list = new ArrayList<>();
-			for (int i = 0; i<in.length(); i++) {
-				char ch = in.charAt(i);
-				switch (ch) {
-					case '{', '[', '(' -> {
-						deque.addFirst(i);
-					}
-					case '}', ']', ')' -> {
-						int indx = deque.removeFirst();
-						String str = in.substring(indx, i + 1);
-						i = indx;
-						in = in.replace(str, "\u0007" + list.size());
-						list.add(getPredicates(str, list));
-					}
-				}
-			}
-			boolean negate = in.charAt(0) == '!';
-			if (negate)
-				in = in.replaceFirst("!", "");
-			if (in.charAt(0) == '\u0007') {
-				in = in.replaceFirst("\u0007", "");
-				return negate ? list.get(Integer.parseInt(in)).negate() : list.get(Integer.parseInt(in));
-			}else{
-				return negate ? getPredicate(in).negate() : getPredicate(in);
-			}
-		}
-		private static Predicate<ServerPlayerEntity> getPredicates(String in, List<Predicate<ServerPlayerEntity>> list){
-			Predicate<ServerPlayerEntity> out = null;
-			char firstchar = in.charAt(0);
-			boolean negate, negate_return = firstchar == '!';
-			if(negate_return)
-				in = in.replaceFirst("!", "");
-			in = in.substring(1, in.length()-1);
-			for (String predicateString : in.split(";")) {
-				negate = predicateString.charAt(0) == '!';
-				if (negate)
-					predicateString = predicateString.replaceFirst("!", "");
-				if (predicateString.charAt(0) == '\u0007') {
-					predicateString = predicateString.replaceFirst("\u0007", "");
-					out = BracketMerge(firstchar, out, list.get(Integer.parseInt(predicateString)));
-				}else{
-					out = BracketMerge(firstchar, out, getPredicate(predicateString));
-				}
-				if (negate)
-					out = out.negate();
-			}
-			return negate_return && out != null? out.negate() : out;
-		}
-		private static Predicate<ServerPlayerEntity> BracketMerge(char in, Predicate<ServerPlayerEntity> p1, Predicate<ServerPlayerEntity> p2){
-			if(p1 == null) return p2;
-			return switch (in){
-				case '[',']'->p1.and(p2);
-				case '{','}'->(player)->p1.test(player) ^ p2.test(player);
-				case '(',')'->p1.or(p2);
-				default -> throw new IllegalStateException("Unexpected value while flipping brackets: " + in);
-			};
 		}
 	}
