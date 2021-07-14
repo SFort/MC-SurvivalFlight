@@ -186,7 +186,7 @@
 				String.format("\t%-20s%-40s%s%n","effect","- Require potion effect","EffectID")+
 				String.format("\t%-20s%-40s%s%n","food","- Minimum required food","float")+
 				String.format("\t%-20s%-40s%s%n","health","- Minimum required heath","float")+
-				String.format("\t%-20s%-40s%s%n","height","- Maximum required player y height","float")+
+				String.format("\t%-20s%-40s%s%n","height","- Minimum required player y height","float")+
 				String.format("\t%-20s%s%n","full_hp","- Require full health")+
 				String.format("\t%-20s%s%n","sprinting","- Require Sprinting")+
 				String.format("\t%-20s%s%n","blocking","- Require Blocking")+
