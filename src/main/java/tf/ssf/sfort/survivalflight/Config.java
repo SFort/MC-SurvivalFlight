@@ -66,12 +66,12 @@
 				for (int i = 0; i<defaultDesc.size();++i)
 					ls[i*2+1]= defaultDesc.get(i);
                 int i = 0;
-                boolean generateScriptHelp = true;
+                boolean generateScriptHelp = false;
                 try {
-					generateScriptHelp =!ls[i].contains("false");
-				}catch (Exception e){ writeScriptHelp(scriptHelpFile.toPath()); }
+					generateScriptHelp =ls[i].contains("true");
+				}catch (Exception ignored){}
                 if (generateScriptHelp) writeScriptHelp(scriptHelpFile.toPath());
-                ls[i]="false";
+                ls[i]=String.valueOf(generateScriptHelp);
 				i+=2;
 
 				try{
@@ -176,8 +176,6 @@
 						Available Conditions:
 						"""+
 				String.format("\t%-20s%-40s%s%n","level","- Minimum required player level","int")+
-				String.format("\t%-20s%-40s%s%n","min_height","- Minimum required player y height","int")+
-				String.format("\t%-20s%-40s%s%n","max_height","- Maximum required player y height","int")+
 				String.format("\t%-20s%-40s%s%n","hand","- Require item in main hand","ItemID")+
 				String.format("\t%-20s%-40s%s%n","offhand","- Require item in off hand","ItemID")+
 				String.format("\t%-20s%-40s%s%n","helm","- Require item as helmet","ItemID")+
@@ -188,6 +186,7 @@
 				String.format("\t%-20s%-40s%s%n","effect","- Require potion effect","EffectID")+
 				String.format("\t%-20s%-40s%s%n","food","- Minimum required food","float")+
 				String.format("\t%-20s%-40s%s%n","health","- Minimum required heath","float")+
+				String.format("\t%-20s%-40s%s%n","height","- Maximum required player y height","float")+
 				String.format("\t%-20s%s%n","full_hp","- Require full health")+
 				String.format("\t%-20s%s%n","sprinting","- Require Sprinting")+
 				String.format("\t%-20s%s%n","blocking","- Require Blocking")+
@@ -256,6 +255,10 @@
 					case "health" -> {
 						float arg = Float.parseFloat(in.substring(colon + 1));
 						yield (player) -> player.getHungerManager().getFoodLevel()>=arg;
+					}
+					case "height" -> {
+						float arg = Float.parseFloat(in.substring(colon + 1));
+						yield (player) -> player.getPos().y>=arg;
 					}
 					case "advancement" -> {
 						Identifier arg = new Identifier(in.substring(colon + 1));
