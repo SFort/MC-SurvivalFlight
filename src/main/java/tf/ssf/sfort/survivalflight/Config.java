@@ -22,7 +22,7 @@
 	import java.util.function.Predicate;
 
 	public class Config implements ModInitializer, ScriptParser<ServerPlayerEntity> {
-		private static final ServerPlayerEntityScript<ServerPlayerEntity> scriptParser = new ServerPlayerEntityScript<>();
+		private static final ServerPlayerEntityScript scriptParser = new ServerPlayerEntityScript();
 		private static final String MOD_ID = "tf.ssf.sfort.survivalflight";
 		public static Logger LOGGER = LogManager.getLogger();
 		public static StatusEffect exit_effect = null;
@@ -160,7 +160,15 @@
                 "^-Apply effect to player on mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
 				"^-Required beacon level for beacon setting [0] 1-4"
 		);
-		public final String scriptHelp = this.getHelp();
+		public final String scriptHelp = """
+				I decided to burn a day and make this mod stupidly configurable.
+				Lines are ignored.
+				Available operations:
+				"""+ ScriptParser.getHelp()+
+				"\nAvailable Conditions:\n"+
+				scriptParser.getHelp()+
+				String.format("\t%-20s%s%n","beacon","- Require beacon")
+				;;
 		private void writeScriptHelp(Path path){
 			try {
 				Files.writeString(path, scriptHelp);
@@ -169,18 +177,6 @@
 		@Override
 		public Predicate<ServerPlayerEntity> getPredicate(String in, String val){
 			return scriptParser.getPredicate(in, val);
-		}
-		@Override
-		public String getHelp(){
-			return """
-				I decided to burn a day and make this mod stupidly configurable.
-				Lines are ignored.
-				Available operations:
-				"""+ ScriptParser.super.getHelp()+
-					"\nAvailable Conditions:\n"+
-					scriptParser.getHelp()+
-					String.format("\t%-20s%s%n","beacon","- Require beacon")
-					;
 		}
 		@Override
 		public Predicate<ServerPlayerEntity> getPredicate(String in){

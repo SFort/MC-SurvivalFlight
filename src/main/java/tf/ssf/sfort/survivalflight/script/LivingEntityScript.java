@@ -11,10 +11,19 @@ import net.minecraft.util.registry.SimpleRegistry;
 
 import java.util.function.Predicate;
 
-public class LivingEntityScript<T extends LivingEntity> implements ScriptParser<T>{
-    private final EntityScript<T> entityScript= new EntityScript<>();
+public class LivingEntityScript implements ScriptParser<LivingEntity>{
+    public static final LivingEntityScript INSTANCE = new LivingEntityScript();
+    public static Predicate<LivingEntity> getP(String in, String val){
+        return INSTANCE.getPredicate(in, val);
+    }
+    public static Predicate<LivingEntity> getP(String in){
+        return INSTANCE.getPredicate(in);
+    }
+    public static String getH(){
+        return INSTANCE.getHelp();
+    }
     @Override
-    public Predicate<T> getPredicate(String in, String val){
+    public Predicate<LivingEntity> getPredicate(String in, String val){
         return switch (in){
             case "hand" -> {
                 Item arg = getItem(val);
@@ -48,22 +57,29 @@ public class LivingEntityScript<T extends LivingEntity> implements ScriptParser<
                 StatusEffect arg = SimpleRegistry.STATUS_EFFECT.get(new Identifier(val));
                 yield (entity) -> entity.hasStatusEffect(arg);
             }
-            default -> entityScript.getPredicate(in, val);
+            case "attack" -> {
+                int arg = Integer.parseInt(val);
+                yield (entity) -> entity.age - entity.getLastAttackTime() > arg;
+            }
+            case "attacked" -> {
+                int arg = Integer.parseInt(val);
+                yield (entity) -> entity.age - entity.getLastAttackedTime() > arg;
+            }
+            default -> player -> EntityScript.getP(in, val).test(player);
         };
     }
     @Override
-    public Predicate<T> getPredicate(String in){
+    public Predicate<LivingEntity> getPredicate(String in){
         return switch (in) {
             case "full_hp" -> (entity) -> entity.getHealth() == entity.getMaxHealth();
             case "blocking" -> LivingEntity::isBlocking;
             case "using" -> LivingEntity::isUsingItem;
-            default -> entityScript.getPredicate(in);
+            default -> player -> EntityScript.getP(in).test(player);
         };
     }
-    @Override
     public String getHelp(){
         return
-                entityScript.getHelp()+
+                EntityScript.getH()+
                 String.format("\t%-20s%-40s%s%n","hand","- Require item in main hand","ItemID")+
                 String.format("\t%-20s%-40s%s%n","offhand","- Require item in off hand","ItemID")+
                 String.format("\t%-20s%-40s%s%n","helm","- Require item as helmet","ItemID")+
@@ -72,6 +88,8 @@ public class LivingEntityScript<T extends LivingEntity> implements ScriptParser<
                 String.format("\t%-20s%-40s%s%n","boots","- Require item as boots","ItemID")+
                 String.format("\t%-20s%-40s%s%n","effect","- Require potion effect","EffectID")+
                 String.format("\t%-20s%-40s%s%n","health","- Minimum required heath","float")+
+                String.format("\t%-20s%-40s%s%n","attack","- Minimum ticked passed since player attacked","float")+
+                String.format("\t%-20s%-40s%s%n","attacked","- Minimum ticks passed since player was attacked","float")+
                 String.format("\t%-20s%s%n","full_hp","- Require full health")+
                 String.format("\t%-20s%s%n","sprinting","- Require Sprinting")+
                 String.format("\t%-20s%s%n","blocking","- Require Blocking")+

@@ -9,7 +9,7 @@ import java.util.function.Predicate;
 public interface ScriptParser<T> {
     Predicate<T> getPredicate(String key);
     Predicate<T> getPredicate(String key, String arg);
-    default String getHelp(){
+    static String getHelp(){
         return String.format("\t%-60s%s%n","!Condition:value","- NOT")+
                 String.format("\t%-60s%s%n","(Condition; Condition:value; ..)","- OR")+
                 String.format("\t%-60s%s%n","[Condition; Condition:value; ..]","- AND")+

@@ -1,45 +1,59 @@
 package tf.ssf.sfort.survivalflight.script;
 
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.world.World;
 
 import java.util.function.Predicate;
 
-public class ServerPlayerEntityScript<T extends ServerPlayerEntity> implements ScriptParser<T>{
-    private final PlayerEntityScript<T> playerEntityScript = new PlayerEntityScript<>();
+public class ServerPlayerEntityScript implements ScriptParser<ServerPlayerEntity>{
+    public static final ServerPlayerEntityScript INSTANCE = new ServerPlayerEntityScript();
+    public static Predicate<ServerPlayerEntity> getP(String in, String val){
+        return INSTANCE.getPredicate(in, val);
+    }
+    public static Predicate<ServerPlayerEntity> getP(String in){
+        return INSTANCE.getPredicate(in);
+    }
+    public static String getH(){
+        return INSTANCE.getHelp();
+    }
     @Override
-    public Predicate<T> getPredicate(String in, String val){
+    public Predicate<ServerPlayerEntity> getPredicate(String in, String val){
         return switch (in){
+            case "respawn_distance" ->{
+                double arg = Double.parseDouble(val);
+                yield player -> {
+                    BlockPos pos = player.getSpawnPointPosition();
+                    ServerWorld world = player.getServerWorld();
+                    RegistryKey<World> dim = player.getSpawnPointDimension();
+                    if (pos == null || world == null) return false;
+                  return dim.equals(world.getRegistryKey()) && pos.isWithinDistance(player.getPos(), arg);
+                };
+            }
             case "advancement" -> {
                 Identifier arg = new Identifier(val);
-                yield (player) -> {
+                yield player -> {
                     MinecraftServer server = player.getServer();
                     if (server == null) return false;
                     return player.getAdvancementTracker().getProgress(server.getAdvancementLoader().get(arg)).isDone();
                 };
             }
-            default -> playerEntityScript.getPredicate(in, val);
+            default -> player -> PlayerEntityScript.getP(in, val).test(player);
         };
     }
     @Override
-    public Predicate<T> getPredicate(String in){
-        return playerEntityScript.getPredicate(in);
+    public Predicate<ServerPlayerEntity> getPredicate(String in){
+        return player -> PlayerEntityScript.getP(in).test(player);
     }
-    @Override
     public String getHelp(){
         return
-                playerEntityScript.getHelp()+
-                String.format("\t%-20s%-40s%s%n","advancement","- Require advancement unlocked","AdvancementID")
-                ;
-    }
-    private static Item getItem(String id){
-        return Registry.ITEM.get(new Identifier(id));
-    }
-    private static boolean eq(Item required, ItemStack current){
-        return required != null && required == current.getItem();
+                PlayerEntityScript.getH()+
+                String.format("\t%-20s%-40s%s%n","advancement","- Require advancement unlocked","AdvancementID")+
+                String.format("\t%-20s%-40s%s%n","respawn_distance","- Require player to be nearby their respawn (usually a bed)","double")
+        ;
     }
 }
