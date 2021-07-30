@@ -2,30 +2,27 @@
 
 	import net.fabricmc.api.ModInitializer;
 	import net.fabricmc.loader.api.FabricLoader;
-	import net.minecraft.entity.Entity;
-	import net.minecraft.entity.EquipmentSlot;
-	import net.minecraft.entity.LivingEntity;
 	import net.minecraft.entity.effect.StatusEffect;
 	import net.minecraft.entity.effect.StatusEffectInstance;
-	import net.minecraft.item.Item;
-	import net.minecraft.item.ItemStack;
-	import net.minecraft.server.MinecraftServer;
 	import net.minecraft.server.network.ServerPlayerEntity;
 	import net.minecraft.util.Identifier;
-	import net.minecraft.util.registry.Registry;
 	import net.minecraft.util.registry.SimpleRegistry;
 	import org.apache.logging.log4j.Level;
 	import org.apache.logging.log4j.LogManager;
 	import org.apache.logging.log4j.Logger;
+	import tf.ssf.sfort.survivalflight.script.ScriptParser;
+	import tf.ssf.sfort.survivalflight.script.ServerPlayerEntityScript;
 
 	import java.io.File;
 	import java.nio.file.Files;
 	import java.nio.file.Path;
-	import java.util.*;
+	import java.util.Arrays;
+	import java.util.List;
 	import java.util.function.Consumer;
 	import java.util.function.Predicate;
 
 	public class Config implements ModInitializer, ScriptParser<ServerPlayerEntity> {
+		private static final ServerPlayerEntityScript<ServerPlayerEntity> scriptParser = new ServerPlayerEntityScript<>();
 		private static final String MOD_ID = "tf.ssf.sfort.survivalflight";
 		public static Logger LOGGER = LogManager.getLogger();
 		public static StatusEffect exit_effect = null;
@@ -163,123 +160,36 @@
                 "^-Apply effect to player on mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
 				"^-Required beacon level for beacon setting [0] 1-4"
 		);
-		public static final String scriptHelp = """
-						I decided to burn a day and make this mod stupidly configurable.
-						Lines are ignored.
-						Available operations:
-						"""+
-				String.format("\t%-60s%s%n","!Condition:value","- NOT")+
-				String.format("\t%-60s%s%n","(Condition; Condition:value; ..)","- OR")+
-				String.format("\t%-60s%s%n","[Condition; Condition:value; ..]","- AND")+
-				String.format("\t%-60s%s%n","{Condition; Condition:value; ..}","- XOR")+
-						"""
-						Available Conditions:
-						"""+
-				String.format("\t%-20s%-40s%s%n","level","- Minimum required player level","int")+
-				String.format("\t%-20s%-40s%s%n","hand","- Require item in main hand","ItemID")+
-				String.format("\t%-20s%-40s%s%n","offhand","- Require item in off hand","ItemID")+
-				String.format("\t%-20s%-40s%s%n","helm","- Require item as helmet","ItemID")+
-				String.format("\t%-20s%-40s%s%n","chest","- Require item as chestplate","ItemID")+
-				String.format("\t%-20s%-40s%s%n","legs","- Require item as leggings","ItemID")+
-				String.format("\t%-20s%-40s%s%n","boots","- Require item as boots","ItemID")+
-				String.format("\t%-20s%-40s%s%n","advancement","- Require advancement unlocked","AdvancementID")+
-				String.format("\t%-20s%-40s%s%n","effect","- Require potion effect","EffectID")+
-				String.format("\t%-20s%-40s%s%n","food","- Minimum required food","float")+
-				String.format("\t%-20s%-40s%s%n","health","- Minimum required heath","float")+
-				String.format("\t%-20s%-40s%s%n","height","- Minimum required player y height","float")+
-				String.format("\t%-20s%s%n","full_hp","- Require full health")+
-				String.format("\t%-20s%s%n","sprinting","- Require Sprinting")+
-				String.format("\t%-20s%s%n","blocking","- Require Blocking")+
-				String.format("\t%-20s%s%n","in_lava","- Require being in lava")+
-				String.format("\t%-20s%s%n","on_fire","- Require being on fire")+
-				String.format("\t%-20s%s%n","using","- Require using items")+
-				String.format("\t%-20s%s%n","wet","- Require being wet")+
-				String.format("\t%-20s%s%n","beacon","- Require beacon")
-				;
-		private static void writeScriptHelp(Path path){
+		public final String scriptHelp = this.getHelp();
+		private void writeScriptHelp(Path path){
 			try {
 				Files.writeString(path, scriptHelp);
 			}catch (Exception e){ LOGGER.log(Level.WARN, MOD_ID +" #0\n"+e); }
 		}
 		@Override
 		public Predicate<ServerPlayerEntity> getPredicate(String in, String val){
-			return switch (in){
-				case "level" -> {
-					int arg = Integer.parseInt(val);
-					yield (player) -> player.experienceLevel>=arg;
-				}
-				case "hand" -> {
-					Item arg = getItem(val);
-					yield (player) -> eq(arg, player.getMainHandStack());
-				}
-				case "offhand" -> {
-					Item arg = getItem(val);
-					yield (player) -> eq(arg, player.getOffHandStack());
-				}
-				case "helm" -> {
-					Item arg = getItem(val);
-					yield (player) -> eq(arg, player.getEquippedStack(EquipmentSlot.HEAD));
-				}
-				case "chest" -> {
-					Item arg = getItem(val);
-					yield (player) -> eq(arg, player.getEquippedStack(EquipmentSlot.CHEST));
-				}
-				case "legs" -> {
-					Item arg = getItem(val);
-					yield (player) -> eq(arg, player.getEquippedStack(EquipmentSlot.LEGS));
-				}
-				case "boots" -> {
-					Item arg = getItem(val);
-					yield (player) -> eq(arg, player.getEquippedStack(EquipmentSlot.FEET));
-				}
-				case "food" -> {
-					float arg = Float.parseFloat(val);
-					yield (player) -> player.getHealth()>=arg;
-				}
-				case "health" -> {
-					float arg = Float.parseFloat(val);
-					yield (player) -> player.getHungerManager().getFoodLevel()>=arg;
-				}
-				case "height" -> {
-					float arg = Float.parseFloat(val);
-					yield (player) -> player.getPos().y>=arg;
-				}
-				case "advancement" -> {
-					Identifier arg = new Identifier(val);
-					yield (player) -> {
-						MinecraftServer server = player.getServer();
-						if (server == null) return false;
-						return player.getAdvancementTracker().getProgress(server.getAdvancementLoader().get(arg)).isDone();
-					};
-				}
-				case "effect" -> {
-					StatusEffect arg = SimpleRegistry.STATUS_EFFECT.get(new Identifier(val));
-					yield (player) -> player.hasStatusEffect(arg);
-				}
-				default -> throw new IllegalStateException("Unexpected value while parsing predicate: " + in);
-			};
+			return scriptParser.getPredicate(in, val);
+		}
+		@Override
+		public String getHelp(){
+			return """
+				I decided to burn a day and make this mod stupidly configurable.
+				Lines are ignored.
+				Available operations:
+				"""+ ScriptParser.super.getHelp()+
+					"\nAvailable Conditions:\n"+
+					scriptParser.getHelp()+
+					String.format("\t%-20s%s%n","beacon","- Require beacon")
+					;
 		}
 		@Override
 		public Predicate<ServerPlayerEntity> getPredicate(String in){
 			return switch (in) {
-				case "full_hp" -> (player) -> player.getHealth() == player.getMaxHealth();
-				case "sprinting" -> Entity::isSprinting;
-				case "blocking" -> LivingEntity::isBlocking;
-				case "in_lava" -> Entity::isInLava;
-				case "on_fire" -> Entity::isOnFire;
-				case "wet" -> Entity::isWet;
-				case "using" -> LivingEntity::isUsingItem;
 				case "beacon" -> {
 					hasBeaconCondition = true;
 					yield (player) -> (((SPEA) player).bf$hasBeacon());
 				}
-				default -> throw new IllegalStateException("Unexpected value while parsing bool predicate: " + in);
+				default -> scriptParser.getPredicate(in);
 			};
-		}
-		private static Item getItem(String id){
-			return Registry.ITEM.get(new Identifier(id));
-		}
-		private static boolean eq(Item required, ItemStack current){
-			return required != null && required == current.getItem();
 		}
 	}

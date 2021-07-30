@@ -1,4 +1,4 @@
-package tf.ssf.sfort.survivalflight;
+package tf.ssf.sfort.survivalflight.script;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -9,15 +9,19 @@ import java.util.function.Predicate;
 public interface ScriptParser<T> {
     Predicate<T> getPredicate(String key);
     Predicate<T> getPredicate(String key, String arg);
+    default String getHelp(){
+        return String.format("\t%-60s%s%n","!Condition:value","- NOT")+
+                String.format("\t%-60s%s%n","(Condition; Condition:value; ..)","- OR")+
+                String.format("\t%-60s%s%n","[Condition; Condition:value; ..]","- AND")+
+                String.format("\t%-60s%s%n","{Condition; Condition:value; ..}","- XOR");
+    }
     default Predicate<T> ScriptParse(String in){
         Deque<Integer> deque = new ArrayDeque<>();
         List<Predicate<T>> list = new ArrayList<>();
         for (int i = 0; i<in.length(); i++) {
             char ch = in.charAt(i);
             switch (ch) {
-                case '{', '[', '(' -> {
-                    deque.addFirst(i);
-                }
+                case '{', '[', '(' -> deque.addFirst(i);
                 case '}', ']', ')' -> {
                     int indx = deque.removeFirst();
                     String str = in.substring(indx, i + 1);
@@ -57,7 +61,7 @@ public interface ScriptParser<T> {
                 int colon = predicateString.indexOf(':');
                 out = BracketMerge(firstchar, out, colon == -1 ? getPredicate(predicateString): getPredicate(predicateString.substring(0, colon), predicateString.substring(colon + 1)));
             }
-            if (negate)
+            if (negate && out != null)
                 out = out.negate();
         }
         return negate_return && out != null? out.negate() : out;
