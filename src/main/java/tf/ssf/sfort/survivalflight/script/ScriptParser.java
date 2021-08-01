@@ -1,23 +1,15 @@
 package tf.ssf.sfort.survivalflight.script;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
+import org.jetbrains.annotations.ApiStatus;
+
+import java.util.*;
 import java.util.function.Predicate;
 
-public interface ScriptParser<T> {
-    Predicate<T> getPredicate(String key);
-    Predicate<T> getPredicate(String key, String arg);
-    static String getHelp(){
-        return String.format("\t%-60s%s%n","!Condition:value","- NOT")+
-                String.format("\t%-60s%s%n","(Condition; Condition:value; ..)","- OR")+
-                String.format("\t%-60s%s%n","[Condition; Condition:value; ..]","- AND")+
-                String.format("\t%-60s%s%n","{Condition; Condition:value; ..}","- XOR");
-    }
-    default Predicate<T> ScriptParse(String in){
+public class ScriptParser<T> implements Type{
+    public List<Predicate<T>> squish = new ArrayList<>();
+
+    public Predicate<T> ScriptParse(String in, PredicateProvider<T> make){
         Deque<Integer> deque = new ArrayDeque<>();
-        List<Predicate<T>> list = new ArrayList<>();
         for (int i = 0; i<in.length(); i++) {
             char ch = in.charAt(i);
             switch (ch) {
@@ -26,8 +18,8 @@ public interface ScriptParser<T> {
                     int indx = deque.removeFirst();
                     String str = in.substring(indx, i + 1);
                     i = indx;
-                    in = in.replace(str, "\u0007" + list.size());
-                    list.add(getPredicates(str, list));
+                    in = in.replace(str, "\u0007" + squish.size());
+                    squish.add(getPredicates(str, make));
                 }
             }
         }
@@ -36,14 +28,13 @@ public interface ScriptParser<T> {
             in = in.replaceFirst("!", "");
         if (in.charAt(0) == '\u0007') {
             in = in.replaceFirst("\u0007", "");
-            return negate ? list.get(Integer.parseInt(in)).negate() : list.get(Integer.parseInt(in));
+            return negate ? squish.get(Integer.parseInt(in)).negate() : squish.get(Integer.parseInt(in));
         }else{
-            int colon = in.indexOf(':');
-            Predicate<T> predicate = colon == -1 ? getPredicate(in): getPredicate(in.substring(0, colon), in.substring(colon + 1));
-            return negate ? predicate.negate() : predicate;
+            return negate ? predicateCheck(in, make).negate() : predicateCheck(in, make);
         }
     }
-    private Predicate<T> getPredicates(String in, List<Predicate<T>> list){
+    @ApiStatus.Internal
+    public Predicate<T> getPredicates(String in, PredicateProvider<T> make){
         Predicate<T> out = null;
         char firstchar = in.charAt(0);
         boolean negate, negate_return = firstchar == '!';
@@ -56,17 +47,23 @@ public interface ScriptParser<T> {
                 predicateString = predicateString.replaceFirst("!", "");
             if (predicateString.charAt(0) == '\u0007') {
                 predicateString = predicateString.replaceFirst("\u0007", "");
-                out = BracketMerge(firstchar, out, list.get(Integer.parseInt(predicateString)));
+                out = BracketMerge(firstchar, out, squish.get(Integer.parseInt(predicateString)));
             }else{
-                int colon = predicateString.indexOf(':');
-                out = BracketMerge(firstchar, out, colon == -1 ? getPredicate(predicateString): getPredicate(predicateString.substring(0, colon), predicateString.substring(colon + 1)));
+                out = BracketMerge(firstchar, out, predicateCheck(predicateString, make));
             }
             if (negate && out != null)
                 out = out.negate();
         }
         return negate_return && out != null? out.negate() : out;
     }
-    private Predicate<T> BracketMerge(char in, Predicate<T> p1, Predicate<T> p2){
+    @ApiStatus.Internal
+    public Predicate<T> predicateCheck(String in, PredicateProvider<T> make){
+        int colon = in.indexOf(':');
+        return colon == -1 ? make.getPredicate(in): make.getPredicate(in.substring(0, colon), in.substring(colon + 1));
+    }
+
+    @ApiStatus.Internal
+    public static<T> Predicate<T> BracketMerge(char in, Predicate<T> p1, Predicate<T> p2){
         if(p1 == null) return p2;
         return switch (in){
             case '[',']'->p1.and(p2);
@@ -75,4 +72,12 @@ public interface ScriptParser<T> {
             default -> throw new IllegalStateException("Unexpected value while flipping brackets: " + in);
         };
     }
+
+    public static String getHelp(){
+        return String.format("\t%-60s%s%n", "!Condition:value", "- NOT") +
+                String.format("\t%-60s%s%n", "(Condition; Condition:value; ..)", "- OR") +
+                String.format("\t%-60s%s%n", "[Condition; Condition:value; ..]", "- AND") +
+                String.format("\t%-60s%s%n", "{Condition; Condition:value; ..}", "- XOR");
+    }
 }
+

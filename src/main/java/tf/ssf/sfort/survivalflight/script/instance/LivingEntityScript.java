@@ -1,5 +1,6 @@
-package tf.ssf.sfort.survivalflight.script;
+package tf.ssf.sfort.survivalflight.script.instance;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffect;
@@ -8,22 +9,16 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.SimpleRegistry;
+import tf.ssf.sfort.survivalflight.script.Default;
+import tf.ssf.sfort.survivalflight.script.Help;
+import tf.ssf.sfort.survivalflight.script.PredicateProvider;
+import tf.ssf.sfort.survivalflight.script.Type;
 
+import java.util.Set;
 import java.util.function.Predicate;
 
-public class LivingEntityScript implements ScriptParser<LivingEntity>{
-    public static final LivingEntityScript INSTANCE = new LivingEntityScript();
-    public static Predicate<LivingEntity> getP(String in, String val){
-        return INSTANCE.getPredicate(in, val);
-    }
-    public static Predicate<LivingEntity> getP(String in){
-        return INSTANCE.getPredicate(in);
-    }
-    public static String getH(){
-        return INSTANCE.getHelp();
-    }
-    @Override
-    public Predicate<LivingEntity> getPredicate(String in, String val){
+public class LivingEntityScript implements PredicateProvider<LivingEntity>, Type, Help {
+    public Predicate<LivingEntity> getLP(String in, String val){
         return switch (in){
             case "hand" -> {
                 Item arg = getItem(val);
@@ -65,21 +60,44 @@ public class LivingEntityScript implements ScriptParser<LivingEntity>{
                 int arg = Integer.parseInt(val);
                 yield (entity) -> entity.age - entity.getLastAttackedTime() > arg;
             }
-            default -> player -> EntityScript.getP(in, val).test(player);
+            default -> null;
         };
     }
-    @Override
-    public Predicate<LivingEntity> getPredicate(String in){
+    public Predicate<LivingEntity> getLP(String in){
         return switch (in) {
             case "full_hp" -> (entity) -> entity.getHealth() == entity.getMaxHealth();
             case "blocking" -> LivingEntity::isBlocking;
             case "using" -> LivingEntity::isUsingItem;
-            default -> player -> EntityScript.getP(in).test(player);
+            default -> null;
         };
     }
+    @Override
+    public Predicate<LivingEntity> getPredicate(String in, String val, Set<String> dejavu){
+        {
+            Predicate<LivingEntity> out = getLP(in, val);
+            if (out != null) return out;
+        }
+        if (dejavu.add(Default.ENTITY.getType())){
+            Predicate<Entity> out = Default.ENTITY.getPredicate(in, val, dejavu);
+            if (out !=null) return out::test;
+        }
+        return null;
+    }
+    @Override
+    public Predicate<LivingEntity> getPredicate(String in, Set<String> dejavu){
+        {
+            Predicate<LivingEntity> out = getLP(in);
+            if (out != null) return out;
+        }
+        if (dejavu.add(Default.ENTITY.getType())){
+            Predicate<Entity> out = Default.ENTITY.getPredicate(in, dejavu);
+            if (out !=null) return out::test;
+        }
+        return null;
+    }
+    @Override
     public String getHelp(){
         return
-                EntityScript.getH()+
                 String.format("\t%-20s%-40s%s%n","hand","- Require item in main hand","ItemID")+
                 String.format("\t%-20s%-40s%s%n","offhand","- Require item in off hand","ItemID")+
                 String.format("\t%-20s%-40s%s%n","helm","- Require item as helmet","ItemID")+
@@ -95,6 +113,10 @@ public class LivingEntityScript implements ScriptParser<LivingEntity>{
                 String.format("\t%-20s%s%n","blocking","- Require Blocking")+
                 String.format("\t%-20s%s%n","using","- Require using items")
                 ;
+    }
+    @Override
+    public String getAllHelp(Set<String> dejavu){
+        return dejavu.add(Default.ENTITY.getType())?Default.ENTITY.getAllHelp(dejavu):""+getHelp();
     }
     private static Item getItem(String id){
         return Registry.ITEM.get(new Identifier(id));

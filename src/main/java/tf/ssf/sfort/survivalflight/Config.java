@@ -11,7 +11,6 @@
 	import org.apache.logging.log4j.LogManager;
 	import org.apache.logging.log4j.Logger;
 	import tf.ssf.sfort.survivalflight.script.ScriptParser;
-	import tf.ssf.sfort.survivalflight.script.ServerPlayerEntityScript;
 
 	import java.io.File;
 	import java.nio.file.Files;
@@ -21,8 +20,7 @@
 	import java.util.function.Consumer;
 	import java.util.function.Predicate;
 
-	public class Config implements ModInitializer, ScriptParser<ServerPlayerEntity> {
-		private static final ServerPlayerEntityScript scriptParser = new ServerPlayerEntityScript();
+	public class Config implements ModInitializer {
 		private static final String MOD_ID = "tf.ssf.sfort.survivalflight";
 		public static Logger LOGGER = LogManager.getLogger();
 		public static StatusEffect exit_effect = null;
@@ -109,7 +107,7 @@
 
             try {
             	if(!scriptFile.createNewFile()) {
-					Predicate<ServerPlayerEntity> out = ScriptParse(Files.readString(scriptFile.toPath()).replaceAll("\\s", ""));
+					Predicate<ServerPlayerEntity> out = new ScriptParser<ServerPlayerEntity>().ScriptParse(Files.readString(scriptFile.toPath()).replaceAll("\\s", ""), new FlightScript());
 					if (out != null)
 						canFly = canFly.and(out);
 					LOGGER.log(Level.INFO, MOD_ID + " successfully loaded script file");
@@ -166,26 +164,11 @@
 				Available operations:
 				"""+ ScriptParser.getHelp()+
 				"\nAvailable Conditions:\n"+
-				scriptParser.getHelp()+
-				String.format("\t%-20s%s%n","beacon","- Require beacon")
-				;;
+				FlightScript.getHelp()
+				;
 		private void writeScriptHelp(Path path){
 			try {
 				Files.writeString(path, scriptHelp);
 			}catch (Exception e){ LOGGER.log(Level.WARN, MOD_ID +" #0\n"+e); }
-		}
-		@Override
-		public Predicate<ServerPlayerEntity> getPredicate(String in, String val){
-			return scriptParser.getPredicate(in, val);
-		}
-		@Override
-		public Predicate<ServerPlayerEntity> getPredicate(String in){
-			return switch (in) {
-				case "beacon" -> {
-					hasBeaconCondition = true;
-					yield (player) -> (((SPEA) player).bf$hasBeacon());
-				}
-				default -> scriptParser.getPredicate(in);
-			};
 		}
 	}

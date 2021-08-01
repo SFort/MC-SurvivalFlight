@@ -1,22 +1,17 @@
-package tf.ssf.sfort.survivalflight.script;
+package tf.ssf.sfort.survivalflight.script.instance;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.world.World;
+import tf.ssf.sfort.survivalflight.script.Default;
+import tf.ssf.sfort.survivalflight.script.Help;
+import tf.ssf.sfort.survivalflight.script.PredicateProvider;
+import tf.ssf.sfort.survivalflight.script.Type;
 
+import java.util.Set;
 import java.util.function.Predicate;
 
-public class EntityScript implements ScriptParser<Entity>{
-	public static final EntityScript INSTANCE = new EntityScript();
-	public static Predicate<Entity> getP(String in, String val){
-		return INSTANCE.getPredicate(in, val);
-	}
-	public static Predicate<Entity> getP(String in){
-		return INSTANCE.getPredicate(in);
-	}
-	public static String getH(){
-		return INSTANCE.getHelp();
-	}
-	@Override
-	public Predicate<Entity> getPredicate(String in, String val){
+public class EntityScript implements PredicateProvider<Entity>, Type, Help {
+	public Predicate<Entity> getLP(String in, String val){
 		return switch (in){
 			case "height" -> {
 				float arg = Float.parseFloat(val);
@@ -26,28 +21,50 @@ public class EntityScript implements ScriptParser<Entity>{
 				int arg = Integer.parseInt(val);
 				yield (entity) -> entity.age>arg;
 			}
-			default -> entity -> WorldScript.getP(in, val).test(entity.world);
+			default -> null;
 		};
 	}
-	@Override
-	public Predicate<Entity> getPredicate(String in){
+	public Predicate<Entity> getLP(String in){
 		return switch (in) {
 			case "sprinting" -> Entity::isSprinting;
 			case "in_lava" -> Entity::isInLava;
 			case "on_fire" -> Entity::isOnFire;
 			case "wet" -> Entity::isWet;
-			//NEW
 			case "fire_immune" -> Entity::isFireImmune;
 			case "freezing" -> Entity::isFreezing;
 			case "glowing" -> Entity::isGlowing;
 			case "explosion_immune" -> Entity::isImmuneToExplosion;
 			case "invisible" -> Entity::isInvisible;
-			default -> entity -> WorldScript.getP(in).test(entity.world);
+			default -> null;
 		};
 	}
+	@Override
+	public Predicate<Entity> getPredicate(String in, String val, Set<String> dejavu) {
+		{
+			Predicate<Entity> out = getLP(in, val);
+			if (out != null) return out;
+		}
+		if (dejavu.add(Default.WORLD.getType())){
+			Predicate<World> out = Default.WORLD.getPredicate(in, val, dejavu);
+			if (out !=null) return entity -> out.test(entity.world);
+		}
+		return null;
+	}
+	@Override
+	public Predicate<Entity> getPredicate(String in, Set<String> dejavu){
+		{
+			Predicate<Entity> out = getLP(in);
+			if (out != null) return out;
+		}
+		if (dejavu.add(Default.WORLD.getType())){
+			Predicate<World> out = Default.WORLD.getPredicate(in, dejavu);
+			if (out !=null) return entity -> out.test(entity.world);
+		}
+		return null;
+	}
+	@Override
 	public String getHelp(){
 		return
-			WorldScript.getH()+
 			String.format("\t%-20s%-40s%s%n","age","- Minimum ticks the player must have existed","int")+
 			String.format("\t%-20s%-40s%s%n","height","- Minimum required player y height","float")+
 			String.format("\t%-20s%s%n","sprinting","- Require Sprinting")+
@@ -60,5 +77,9 @@ public class EntityScript implements ScriptParser<Entity>{
             String.format("\t%-20s%s%n","explosion_immune","- Require being immune to explosions")+
             String.format("\t%-20s%s%n","invisible","- Require being invisible")
 		;
+	}
+	@Override
+	public String getAllHelp(Set<String> dejavu){
+		return dejavu.add(Default.WORLD.getType())?Default.WORLD.getAllHelp(dejavu):""+getHelp();
 	}
 }
