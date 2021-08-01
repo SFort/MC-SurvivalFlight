@@ -65,8 +65,8 @@ public class EntityScript implements PredicateProvider<Entity>, Type, Help {
 	@Override
 	public String getHelp(){
 		return
-			String.format("\t%-20s%-40s%s%n","age","- Minimum ticks the player must have existed","int")+
-			String.format("\t%-20s%-40s%s%n","height","- Minimum required player y height","float")+
+			String.format("\t%-20s%-70s%s%n","age","- Minimum ticks the player must have existed","int")+
+			String.format("\t%-20s%-70s%s%n","height","- Minimum required player y height","float")+
 			String.format("\t%-20s%s%n","sprinting","- Require Sprinting")+
 			String.format("\t%-20s%s%n","in_lava","- Require being in lava")+
 			String.format("\t%-20s%s%n","on_fire","- Require being on fire")+
@@ -80,6 +80,6 @@ public class EntityScript implements PredicateProvider<Entity>, Type, Help {
 	}
 	@Override
 	public String getAllHelp(Set<String> dejavu){
-		return dejavu.add(Default.WORLD.getType())?Default.WORLD.getAllHelp(dejavu):""+getHelp();
+		return (dejavu.add(Default.WORLD.getType())?Default.WORLD.getAllHelp(dejavu):"")+getHelp();
 	}
 }

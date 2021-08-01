@@ -1,5 +1,8 @@
 package tf.ssf.sfort.survivalflight.script.instance;
 
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.SimpleRegistry;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import tf.ssf.sfort.survivalflight.script.Default;
@@ -20,7 +23,13 @@ public class WorldScript implements PredicateProvider<World>, Type, Help {
         };
     }
     public Predicate<World> getLP(String in, String val){
-        return null;
+        return switch (in){
+            case "dimension" -> {
+                Identifier arg = new Identifier(val);
+                yield world -> world.getRegistryKey().getValue().equals(arg);
+            }
+            default -> null;
+        };
     }
     @Override
     public Predicate<World> getPredicate(String in, String val, Set<String> dejavu){
@@ -49,6 +58,7 @@ public class WorldScript implements PredicateProvider<World>, Type, Help {
     @Override
     public String getHelp(){
         return
+                String.format("\t%-20s%-70s%s%n","dimension","- Require being in dimension overworld|the_nether|the_end","DimensionID")+
                 String.format("\t%-20s%s%n","is_thundering","- Require thunder")+
                 String.format("\t%-20s%s%n","is_raining","- Require rain")+
                 String.format("\t%-20s%s%n","is_day","- Require daytime")
@@ -56,6 +66,6 @@ public class WorldScript implements PredicateProvider<World>, Type, Help {
     }
     @Override
     public String getAllHelp(Set<String> dejavu){
-        return dejavu.add(Default.DIMENSION_TYPE.getType())?Default.DIMENSION_TYPE.getAllHelp(dejavu):""+getHelp();
+        return (dejavu.add(Default.DIMENSION_TYPE.getType())?Default.DIMENSION_TYPE.getAllHelp(dejavu):"")+getHelp();
     }
 }

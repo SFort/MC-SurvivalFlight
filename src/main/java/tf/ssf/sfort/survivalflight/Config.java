@@ -32,11 +32,10 @@
 		public static int ticksPerXP = 0;
 		public static boolean hasBeaconCondition = false;
         public static boolean hasExperianceCondition = false;
-
-		public static Predicate<ServerPlayerEntity> canFly = (player) -> ((SPEA)player).bf$isSurvivalLike();
-		public static Consumer<ServerPlayerEntity> exit = (player) -> {};
-
-		public static Consumer<ServerPlayerEntity> tick = (splayer)-> {
+        private static boolean registerCommands = true;
+		public static final Predicate<ServerPlayerEntity> canFly_init = (player) -> ((SPEA)player).bf$isSurvivalLike();
+		public static final Consumer<ServerPlayerEntity> exit_init = (player) -> {};
+		public static final Consumer<ServerPlayerEntity> tick_init = (splayer)-> {
 			SPEA player = (SPEA) splayer;
 			if (Config.canFly.test(splayer)) {
 				if (!splayer.getAbilities().allowFlying)
@@ -45,9 +44,24 @@
 				player.bf$fall();
 			}
 		};
+		public static Predicate<ServerPlayerEntity> canFly = canFly_init;
+		public static Consumer<ServerPlayerEntity> exit = exit_init;
+		public static Consumer<ServerPlayerEntity> tick = tick_init;
 
+		public static void resetsettings(){
+			hasBeaconCondition = false;
+			canFly = canFly_init;
+			exit = exit_init;
+			tick = tick_init;
+		}
         @Override
 		public void onInitialize() {
+        	reload_settings();
+			if (FabricLoader.getInstance().isModLoaded("fabric-command-api-v1") && registerCommands){
+				Commands.register();
+			}
+		}
+		public static void reload_settings(){
 			// Configs
 			File confFolder = FabricLoader.getInstance().getConfigDirectory();
 			File confFile = new File(confFolder, "SurvivalFlight.conf");
@@ -55,70 +69,76 @@
 			File scriptHelpFile = new File(confFolder, "SurvivalFlightScriptHelp.conf");
 			try {
 				boolean existing = !confFile.createNewFile();
-                List<String> la = Files.readAllLines(confFile.toPath());
+				List<String> la = Files.readAllLines(confFile.toPath());
 				String[] ls = la.toArray(new String[Math.max(la.size(), defaultDesc.size() * 2)|1]);
-                final int hash = Arrays.hashCode(ls);
+				final int hash = Arrays.hashCode(ls);
 				for (int i = 0; i<defaultDesc.size();++i)
 					ls[i*2+1]= defaultDesc.get(i);
-                int i = 0;
-                boolean generateScriptHelp = false;
-                try {
+				int i = 0;
+				boolean generateScriptHelp = false;
+				try {
 					generateScriptHelp =ls[i].contains("true");
 				}catch (Exception ignored){}
-                if (generateScriptHelp) writeScriptHelp(scriptHelpFile.toPath());
-                ls[i]=String.valueOf(generateScriptHelp);
+				if (generateScriptHelp) writeScriptHelp(scriptHelpFile.toPath());
+				ls[i]=String.valueOf(generateScriptHelp);
 				i+=2;
 
 				try{
-				    xpPerTick = Integer.parseInt(ls[i]);
+					xpPerTick = Integer.parseInt(ls[i]);
 				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
 				ls[i] = String.valueOf(xpPerTick);
 				i+=2;
 
-                try{
-                    int indx = ls[i].indexOf(".");
-                    if(indx != -1)
-                        ticksPerXP = (int) Math.round(1/Double.parseDouble("0"+ls[i].substring(indx)));
-                    else
-                        ticksPerXP = Integer.parseInt(ls[i]);
+				try{
+					int indx = ls[i].indexOf(".");
+					if(indx != -1)
+						ticksPerXP = (int) Math.round(1/Double.parseDouble("0"+ls[i].substring(indx)));
+					else
+						ticksPerXP = Integer.parseInt(ls[i]);
 				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
-                ls[i] = String.valueOf(ticksPerXP);
-                i+=2;
+				ls[i] = String.valueOf(ticksPerXP);
+				i+=2;
 
-                try{
-				    int indx = ls[i].indexOf(";");
-                    int duration = Integer.parseInt(ls[i].substring(indx+1));
+				try{
+					int indx = ls[i].indexOf(";");
+					int duration = Integer.parseInt(ls[i].substring(indx+1));
 					exit_effect = SimpleRegistry.STATUS_EFFECT.get(new Identifier(ls[i].substring(0,indx)));
 					exit = exit.andThen((player) -> player.addStatusEffect(new StatusEffectInstance(exit_effect, duration)));
 				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
-                i+=2;
+				i+=2;
 				try{
 					beaconLevel = Integer.parseInt(ls[i]);
 				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
 				ls[i] = String.valueOf(beaconLevel);
 
-                if (hash != Arrays.hashCode(ls))
-				    Files.write(confFile.toPath(), Arrays.asList(ls));
+				i+=2;
+				try{
+					registerCommands = !ls[i].contains("false");
+				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
+				ls[i] = String.valueOf(registerCommands);
+
+				if (hash != Arrays.hashCode(ls))
+					Files.write(confFile.toPath(), Arrays.asList(ls));
 				LOGGER.log(Level.INFO, MOD_ID +" successfully loaded config file");
 			} catch(Exception e) {
 				LOGGER.log(Level.ERROR, MOD_ID +" failed to load config file, using defaults\n"+e);
 			}
 
 
-            try {
-            	if(!scriptFile.createNewFile()) {
+			try {
+				if(!scriptFile.createNewFile()) {
 					Predicate<ServerPlayerEntity> out = new ScriptParser<ServerPlayerEntity>().ScriptParse(Files.readString(scriptFile.toPath()).replaceAll("\\s", ""), new FlightScript());
 					if (out != null)
 						canFly = canFly.and(out);
 					LOGGER.log(Level.INFO, MOD_ID + " successfully loaded script file");
 				}
-            } catch (Exception e) {
-                LOGGER.log(Level.ERROR, MOD_ID +" failed to load script file\n"+e);
-            }
-            hasExperianceCondition = ticksPerXP != 0 || xpPerTick != 0;
-            if (hasExperianceCondition && hasBeaconCondition){
-            	tick = (splayer)->{
-            		SPEA player = (SPEA) splayer;
+			} catch (Exception e) {
+				LOGGER.log(Level.ERROR, MOD_ID +" failed to load script file\n"+e);
+			}
+			hasExperianceCondition = ticksPerXP != 0 || xpPerTick != 0;
+			if (hasExperianceCondition && hasBeaconCondition){
+				tick = (splayer)->{
+					SPEA player = (SPEA) splayer;
 					if (Config.canFly.test(splayer)) {
 						player.bf$tickXP();
 						player.bf$checkBeacon();
@@ -149,16 +169,17 @@
 					player.bf$tickBeacon();
 				};
 			}
-        }
+		}
 
         public static final List<String> defaultDesc = Arrays.asList(
                 "^-Generate Script Help? [true] true | false",
                 "^-Xp consumed per tick [0] 0 - ..",
                 "^-Consume 1XP per X ticks [0] 0 - .. // if you prefer decimals/tick putting in for e.g.: 0.2 xp/t will auto translate",
                 "^-Apply effect to player on mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
-				"^-Required beacon level for beacon setting [0] 1-4"
+				"^-Required beacon level for beacon setting [0] 1-4",
+				"^-Add reload settings command"
 		);
-		public final String scriptHelp = """
+		public static final String scriptHelp = """
 				I decided to burn a day and make this mod stupidly configurable.
 				Lines are ignored.
 				Available operations:
@@ -166,7 +187,7 @@
 				"\nAvailable Conditions:\n"+
 				FlightScript.getHelp()
 				;
-		private void writeScriptHelp(Path path){
+		private static void writeScriptHelp(Path path){
 			try {
 				Files.writeString(path, scriptHelp);
 			}catch (Exception e){ LOGGER.log(Level.WARN, MOD_ID +" #0\n"+e); }
