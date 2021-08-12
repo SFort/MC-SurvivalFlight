@@ -9,11 +9,11 @@ import java.util.function.Predicate;
 
 public class FlightScript implements PredicateProvider<ServerPlayerEntity> {
 
-    public Predicate<ServerPlayerEntity> getPredicate(String in, String val, Set<String> dejavu){
+    public Predicate<ServerPlayerEntity> getPredicate(String in, String val, Set<Class<?>> dejavu){
         return Default.SERVER_PLAYER_ENTITY.getPredicate(in, val, dejavu);
     }
 
-    public Predicate<ServerPlayerEntity> getPredicate(String in, Set<String> dejavu){
+    public Predicate<ServerPlayerEntity> getPredicate(String in, Set<Class<?>> dejavu){
         return switch (in) {
             case "beacon" -> {
                 Config.hasBeaconCondition = true;

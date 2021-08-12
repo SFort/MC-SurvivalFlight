@@ -5,7 +5,7 @@ import java.util.Set;
 
 public interface Help {
     String getHelp();
-    String getAllHelp(Set<String> dejavu);
+    String getAllHelp(Set<Class<?>> dejavu);
     default String getAllHelp(){
         return getAllHelp(new HashSet<>());
     }

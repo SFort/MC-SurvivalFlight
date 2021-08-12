@@ -26,12 +26,12 @@
 		public static StatusEffect exit_effect = null;
 
 
-
+		public static int duration = 0;
+		public static int cooldown = 0;
         public static int xpPerTick = 0;
 		public static int beaconLevel = 0;
 		public static int ticksPerXP = 0;
 		public static boolean hasBeaconCondition = false;
-        public static boolean hasExperianceCondition = false;
         private static boolean registerCommands = true;
 		public static final Predicate<ServerPlayerEntity> canFly_init = (player) -> ((SPEA)player).bf$isSurvivalLike();
 		public static final Consumer<ServerPlayerEntity> exit_init = (player) -> {};
@@ -116,6 +116,18 @@
 					registerCommands = !ls[i].contains("false");
 				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
 				ls[i] = String.valueOf(registerCommands);
+				i+=2;
+
+				try{
+					duration = Integer.parseInt(ls[i]);
+				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
+				ls[i] = String.valueOf(duration);
+				i+=2;
+
+				try{
+					cooldown = -Integer.parseInt(ls[i]);
+				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
+				ls[i] = String.valueOf(-cooldown);
 
 				if (hash != Arrays.hashCode(ls))
 					Files.write(confFile.toPath(), Arrays.asList(ls));
@@ -123,7 +135,6 @@
 			} catch(Exception e) {
 				LOGGER.log(Level.ERROR, MOD_ID +" failed to load config file, using defaults\n"+e);
 			}
-
 
 			try {
 				if(!scriptFile.createNewFile()) {
@@ -135,20 +146,12 @@
 			} catch (Exception e) {
 				LOGGER.log(Level.ERROR, MOD_ID +" failed to load script file\n"+e);
 			}
-			hasExperianceCondition = ticksPerXP != 0 || xpPerTick != 0;
-			if (hasExperianceCondition && hasBeaconCondition){
-				tick = (splayer)->{
-					SPEA player = (SPEA) splayer;
-					if (Config.canFly.test(splayer)) {
-						player.bf$tickXP();
-						player.bf$checkBeacon();
-					} else if (player.bf$isSurvivalLike() && splayer.getAbilities().allowFlying) {
-						player.bf$fall();
-					}
-					player.bf$tickBeacon();
-				};
-			}else if (hasExperianceCondition){
-				tick = (splayer)-> {
+			if(duration != 0 || cooldown != 0)
+				canFly = bit_and(canFly, player -> ((SPEA)player).bf$tickTimed());
+
+			//TODO probably merge into canFly
+			if (ticksPerXP != 0 || xpPerTick != 0){
+				tick = splayer-> {
 					SPEA player = (SPEA) splayer;
 					if (Config.canFly.test(splayer)) {
 						player.bf$tickXP();
@@ -156,18 +159,9 @@
 						player.bf$fall();
 					}
 				};
-			}else if (hasBeaconCondition){
-				tick = (splayer)-> {
-					SPEA player = (SPEA) splayer;
-					if (Config.canFly.test(splayer)) {
-						if (!splayer.getAbilities().allowFlying)
-							player.bf$fly();
-						player.bf$checkBeacon();
-					} else if (player.bf$isSurvivalLike() && splayer.getAbilities().allowFlying) {
-						player.bf$fall();
-					}
-					player.bf$tickBeacon();
-				};
+			}
+			if(hasBeaconCondition) {
+				tick = ((Consumer<ServerPlayerEntity>)p -> ((SPEA) p).bf$tickBeacon()).andThen(tick);
 			}
 		}
 
@@ -177,7 +171,9 @@
                 "^-Consume 1XP per X ticks [0] 0 - .. // if you prefer decimals/tick putting in for e.g.: 0.2 xp/t will auto translate",
                 "^-Apply effect to player on mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
 				"^-Required beacon level for beacon setting [0] 1-4",
-				"^-Add reload settings command"
+				"^-Add reload settings command",
+				"^-Flight duration in ticks before cool-down starts [0]",
+				"^-Flight cool-down in ticks [0]"
 		);
 		public static final String scriptHelp = """
 				I decided to burn a day and make this mod stupidly configurable.
@@ -191,5 +187,8 @@
 			try {
 				Files.writeString(path, scriptHelp);
 			}catch (Exception e){ LOGGER.log(Level.WARN, MOD_ID +" #0\n"+e); }
+		}
+		private static Predicate<ServerPlayerEntity> bit_and(Predicate<ServerPlayerEntity> p1, Predicate<ServerPlayerEntity> p2){
+			return p -> p1.test(p) & p2.test(p);
 		}
 	}

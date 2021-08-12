@@ -5,7 +5,8 @@ import org.jetbrains.annotations.ApiStatus;
 import java.util.*;
 import java.util.function.Predicate;
 
-public class ScriptParser<T> implements Type{
+public class ScriptParser<T> {
+    //TODO maybe dedup / cache squish?
     public List<Predicate<T>> squish = new ArrayList<>();
 
     public Predicate<T> ScriptParse(String in, PredicateProvider<T> make){

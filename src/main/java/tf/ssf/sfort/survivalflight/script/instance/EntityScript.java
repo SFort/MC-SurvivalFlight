@@ -1,30 +1,39 @@
 package tf.ssf.sfort.survivalflight.script.instance;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.Biome;
 import tf.ssf.sfort.survivalflight.script.Default;
 import tf.ssf.sfort.survivalflight.script.Help;
 import tf.ssf.sfort.survivalflight.script.PredicateProvider;
-import tf.ssf.sfort.survivalflight.script.Type;
 
 import java.util.Set;
 import java.util.function.Predicate;
 
-public class EntityScript implements PredicateProvider<Entity>, Type, Help {
-	public Predicate<Entity> getLP(String in, String val){
+public class EntityScript<T extends Entity> implements PredicateProvider<T>, Help {
+	public Predicate<T> getLP(String in, String val){
 		return switch (in){
 			case "height" -> {
 				float arg = Float.parseFloat(val);
-				yield (entity) -> entity.getPos().y>=arg;
+				yield entity -> entity.getPos().y>=arg;
 			}
 			case "age" -> {
 				int arg = Integer.parseInt(val);
-				yield (entity) -> entity.age>arg;
+				yield entity -> entity.age>arg;
+			}
+			case "local_difficulty" -> {
+				float arg = Float.parseFloat(val);
+				yield entity -> entity.world.getLocalDifficulty(entity.getBlockPos()).isHarderThan(arg);
+			}
+			case "biome" -> {
+				Identifier arg = new Identifier(val);
+				yield entity -> entity.world.getBiomeKey(entity.getBlockPos()).map(x->x.getValue().equals(arg)).orElse(false);
 			}
 			default -> null;
 		};
 	}
-	public Predicate<Entity> getLP(String in){
+	public Predicate<T> getLP(String in){
 		return switch (in) {
 			case "sprinting" -> Entity::isSprinting;
 			case "in_lava" -> Entity::isInLava;
@@ -39,26 +48,34 @@ public class EntityScript implements PredicateProvider<Entity>, Type, Help {
 		};
 	}
 	@Override
-	public Predicate<Entity> getPredicate(String in, String val, Set<String> dejavu) {
+	public Predicate<T> getPredicate(String in, String val, Set<Class<?>> dejavu) {
 		{
-			Predicate<Entity> out = getLP(in, val);
+			Predicate<T> out = getLP(in, val);
 			if (out != null) return out;
 		}
-		if (dejavu.add(Default.WORLD.getType())){
+		if (dejavu.add(WorldScript.class)){
 			Predicate<World> out = Default.WORLD.getPredicate(in, val, dejavu);
 			if (out !=null) return entity -> out.test(entity.world);
+		}
+		if (dejavu.add(BiomeScript.class)){
+			Predicate<Biome> out = Default.BIOME.getPredicate(in, val, dejavu);
+			if (out !=null) return entity -> out.test(entity.world.getBiome(entity.getBlockPos()));
 		}
 		return null;
 	}
 	@Override
-	public Predicate<Entity> getPredicate(String in, Set<String> dejavu){
+	public Predicate<T> getPredicate(String in, Set<Class<?>> dejavu){
 		{
-			Predicate<Entity> out = getLP(in);
+			Predicate<T> out = getLP(in);
 			if (out != null) return out;
 		}
-		if (dejavu.add(Default.WORLD.getType())){
+		if (dejavu.add(WorldScript.class)){
 			Predicate<World> out = Default.WORLD.getPredicate(in, dejavu);
 			if (out !=null) return entity -> out.test(entity.world);
+		}
+		if (dejavu.add(BiomeScript.class)){
+			Predicate<Biome> out = Default.BIOME.getPredicate(in, dejavu);
+			if (out !=null) return entity -> out.test(entity.world.getBiome(entity.getBlockPos()));
 		}
 		return null;
 	}
@@ -67,6 +84,8 @@ public class EntityScript implements PredicateProvider<Entity>, Type, Help {
 		return
 			String.format("\t%-20s%-70s%s%n","age","- Minimum ticks the player must have existed","int")+
 			String.format("\t%-20s%-70s%s%n","height","- Minimum required player y height","float")+
+			String.format("\t%-20s%-70s%s%n","local_difficulty","- Minimum required regional/local difficulty","float")+
+			String.format("\t%-20s%-70s%s%n","biome","- Required biome","BiomeID")+
 			String.format("\t%-20s%s%n","sprinting","- Require Sprinting")+
 			String.format("\t%-20s%s%n","in_lava","- Require being in lava")+
 			String.format("\t%-20s%s%n","on_fire","- Require being on fire")+
@@ -79,7 +98,9 @@ public class EntityScript implements PredicateProvider<Entity>, Type, Help {
 		;
 	}
 	@Override
-	public String getAllHelp(Set<String> dejavu){
-		return (dejavu.add(Default.WORLD.getType())?Default.WORLD.getAllHelp(dejavu):"")+getHelp();
+	public String getAllHelp(Set<Class<?>> dejavu){
+		return (dejavu.add(WorldScript.class)?Default.WORLD.getAllHelp(dejavu):"")+
+				(dejavu.add(BiomeScript.class)?Default.BIOME.getAllHelp(dejavu):"")+
+				getHelp();
 	}
 }

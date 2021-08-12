@@ -6,8 +6,8 @@ import java.util.function.Predicate;
 
 public interface PredicateProvider<T> {
     //TODO dejavu wont actually work the way it's currently implemented it has to be added pre recursive call getPredicate
-    Predicate<T> getPredicate(String key, Set<String> dejavu);
-    Predicate<T> getPredicate(String key, String arg, Set<String> dejavu);
+    Predicate<T> getPredicate(String key, Set<Class<?>> dejavu);
+    Predicate<T> getPredicate(String key, String arg, Set<Class<?>> dejavu);
     default Predicate<T> getPredicate(String key){
         return getPredicate(key, new HashSet<>());
     }

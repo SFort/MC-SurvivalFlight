@@ -3,18 +3,17 @@ package tf.ssf.sfort.survivalflight.script.instance;
 import net.minecraft.world.dimension.DimensionType;
 import tf.ssf.sfort.survivalflight.script.Help;
 import tf.ssf.sfort.survivalflight.script.PredicateProvider;
-import tf.ssf.sfort.survivalflight.script.Type;
 
 import java.util.Set;
 import java.util.function.Predicate;
 
-public class DimensionTypeScript implements PredicateProvider<DimensionType>, Help, Type {
+public class DimensionTypeScript implements PredicateProvider<DimensionType>, Help {
     @Override
-    public Predicate<DimensionType> getPredicate(String in, String val, Set<String> dejavu){
+    public Predicate<DimensionType> getPredicate(String in, String val, Set<Class<?>> dejavu){
         return getLP(in,val);
     }
     @Override
-    public Predicate<DimensionType> getPredicate(String in, Set<String> dejavu){
+    public Predicate<DimensionType> getPredicate(String in, Set<Class<?>> dejavu){
         return getLP(in);
     }
     public Predicate<DimensionType> getLP(String in){
@@ -39,7 +38,7 @@ public class DimensionTypeScript implements PredicateProvider<DimensionType>, He
                 String.format("\t%-20s%s%n","dim_does_anchor_work","- Require dimension where respawn anchors work")
         ;
     }
-    public String getAllHelp(Set<String> dejavu){
+    public String getAllHelp(Set<Class<?>> dejavu){
         return getHelp();
     }
 }

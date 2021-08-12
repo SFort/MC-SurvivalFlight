@@ -7,7 +7,7 @@ public interface SPEA {
     void bf$fly();
     void bf$tickXP();
     void bf$tickBeacon();
-    void bf$checkBeacon();
+    boolean bf$tickTimed();
     boolean bf$isSurvivalLike();
     boolean bf$hasBeacon();
 }

@@ -1,8 +1,5 @@
 package tf.ssf.sfort.survivalflight.script.instance;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -10,19 +7,18 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
-import tf.ssf.sfort.survivalflight.script.Default;
 import tf.ssf.sfort.survivalflight.script.Help;
 import tf.ssf.sfort.survivalflight.script.PredicateProvider;
-import tf.ssf.sfort.survivalflight.script.Type;
 
 import java.util.Set;
 import java.util.function.Predicate;
 
-public class ServerPlayerEntityScript implements PredicateProvider<ServerPlayerEntity>, Type, Help {
-    public Predicate<ServerPlayerEntity> getLP(String in){
+public class ServerPlayerEntityScript<T extends ServerPlayerEntity> implements PredicateProvider<T>, Help {
+    private final PlayerEntityScript<T> PLAYER_ENTITY = new PlayerEntityScript<>();
+    public Predicate<T> getLP(String in){
         return null;
     }
-    public Predicate<ServerPlayerEntity> getLP(String in, String val){
+    public Predicate<T> getLP(String in, String val){
         return switch (in){
             case "respawn_distance" ->{
                 double arg = Double.parseDouble(val);
@@ -46,52 +42,28 @@ public class ServerPlayerEntityScript implements PredicateProvider<ServerPlayerE
         };
     }
     @Override
-    public Predicate<ServerPlayerEntity> getPredicate(String in, String val, Set<String> dejavu){
+    public Predicate<T> getPredicate(String in, String val, Set<Class<?>> dejavu){
         {
-            Predicate<ServerPlayerEntity> out = getLP(in, val);
+            Predicate<T> out = getLP(in, val);
             if (out != null) return out;
         }
-        if (dejavu.add(Default.WORLD.getType())){
-            Predicate<World> out = Default.WORLD.getPredicate(in, val, dejavu);
-            if (out !=null) return entity -> out.test(entity.world);
-        }
-        if (dejavu.add(Default.ENTITY.getType())){
-            Predicate<Entity> out = Default.ENTITY.getPredicate(in, val, dejavu);
-            if (out !=null) return out::test;
-        }
-        if (dejavu.add(Default.LIVING_ENTITY.getType())){
-            Predicate<LivingEntity> out = Default.LIVING_ENTITY.getPredicate(in, val, dejavu);
-            if (out !=null) return out::test;
-        }
-        if (dejavu.add(Default.PLAYER_ENTITY.getType())){
-            Predicate<PlayerEntity> out = Default.PLAYER_ENTITY.getPredicate(in, val, dejavu);
-            if (out !=null) return out::test;
+        if (dejavu.add(PLAYER_ENTITY.getClass())){
+            Predicate<T> out = PLAYER_ENTITY.getPredicate(in, val, dejavu);
+            if (out !=null) return out;
         }
         return null;
     }
 
 
     @Override
-    public Predicate<ServerPlayerEntity> getPredicate(String in, Set<String> dejavu){
+    public Predicate<T> getPredicate(String in, Set<Class<?>> dejavu){
         {
-            Predicate<ServerPlayerEntity> out = getLP(in);
+            Predicate<T> out = getLP(in);
             if (out != null) return out;
         }
-        if (dejavu.add(Default.WORLD.getType())){
-            Predicate<World> out = Default.WORLD.getPredicate(in, dejavu);
-            if (out !=null) return entity -> out.test(entity.world);
-        }
-        if (dejavu.add(Default.ENTITY.getType())){
-            Predicate<Entity> out = Default.ENTITY.getPredicate(in, dejavu);
-            if (out !=null) return out::test;
-        }
-        if (dejavu.add(Default.LIVING_ENTITY.getType())){
-            Predicate<LivingEntity> out = Default.LIVING_ENTITY.getPredicate(in, dejavu);
-            if (out !=null) return out::test;
-        }
-        if (dejavu.add(Default.PLAYER_ENTITY.getType())){
-            Predicate<PlayerEntity> out = Default.PLAYER_ENTITY.getPredicate(in, dejavu);
-            if (out !=null) return out::test;
+        if (dejavu.add(PLAYER_ENTITY.getClass())){
+            Predicate<T> out = PLAYER_ENTITY.getPredicate(in, dejavu);
+            if (out !=null) return out;
         }
         return null;
     }
@@ -103,7 +75,7 @@ public class ServerPlayerEntityScript implements PredicateProvider<ServerPlayerE
         ;
     }
     @Override
-    public String getAllHelp(Set<String> dejavu){
-        return (dejavu.add(Default.PLAYER_ENTITY.getType())?Default.PLAYER_ENTITY.getAllHelp(dejavu):"")+getHelp();
+    public String getAllHelp(Set<Class<?>> dejavu){
+        return (dejavu.add(PLAYER_ENTITY.getClass())?PLAYER_ENTITY.getAllHelp(dejavu):"")+getHelp();
     }
 }
