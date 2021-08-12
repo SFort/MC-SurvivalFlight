@@ -40,7 +40,7 @@ public class BiomeScript implements PredicateProvider<Biome>, Help {
 		return
 				String.format("\t%-20s%-70s%s%n","tempeture","- Player must be in biome warmer then this","float")+
                 String.format("\t%-20s%-70s%s%n","precipitation","- Player must be in biome with this precipitation: rain | snow | none","BiomePrecipitationID")+
-                String.format("\t%-20s%-70s%s%n","catagory","- Player must be in biome with this category","BiomeCategoryID")
+                String.format("\t%-20s%-70s%s%n","catagory","- Player must be in biome with this catagory","BiomeCatagoryID")
         ;
 	}
 	public String getAllHelp(Set<Class<?>> dejavu){
