@@ -12,6 +12,7 @@ public class Default {
     public static final PlayerEntityScript<PlayerEntity> PLAYER_ENTITY = new PlayerEntityScript<>();
     public static final ServerPlayerEntityScript<ServerPlayerEntity> SERVER_PLAYER_ENTITY = new ServerPlayerEntityScript<>();
     public static final DimensionTypeScript DIMENSION_TYPE = new DimensionTypeScript();
+    public static final ChunkScript CHUNK = new ChunkScript();
     public static final WorldScript WORLD = new WorldScript();
     public static final BiomeScript BIOME = new BiomeScript();
 }

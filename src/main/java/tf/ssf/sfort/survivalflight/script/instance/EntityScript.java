@@ -4,6 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
+import net.minecraft.world.chunk.Chunk;
 import tf.ssf.sfort.survivalflight.script.Default;
 import tf.ssf.sfort.survivalflight.script.Help;
 import tf.ssf.sfort.survivalflight.script.PredicateProvider;
@@ -61,6 +62,10 @@ public class EntityScript<T extends Entity> implements PredicateProvider<T>, Hel
 			Predicate<Biome> out = Default.BIOME.getPredicate(in, val, dejavu);
 			if (out !=null) return entity -> out.test(entity.world.getBiome(entity.getBlockPos()));
 		}
+		if (dejavu.add(ChunkScript.class)){
+			Predicate<Chunk> out = Default.CHUNK.getPredicate(in, val, dejavu);
+			if (out !=null) return entity -> out.test(entity.world.getWorldChunk(entity.getBlockPos()));
+		}
 		return null;
 	}
 	@Override
@@ -76,6 +81,10 @@ public class EntityScript<T extends Entity> implements PredicateProvider<T>, Hel
 		if (dejavu.add(BiomeScript.class)){
 			Predicate<Biome> out = Default.BIOME.getPredicate(in, dejavu);
 			if (out !=null) return entity -> out.test(entity.world.getBiome(entity.getBlockPos()));
+		}
+		if (dejavu.add(ChunkScript.class)){
+			Predicate<Chunk> out = Default.CHUNK.getPredicate(in, dejavu);
+			if (out !=null) return entity -> out.test(entity.world.getWorldChunk(entity.getBlockPos()));
 		}
 		return null;
 	}
@@ -101,6 +110,7 @@ public class EntityScript<T extends Entity> implements PredicateProvider<T>, Hel
 	public String getAllHelp(Set<Class<?>> dejavu){
 		return (dejavu.add(WorldScript.class)?Default.WORLD.getAllHelp(dejavu):"")+
 				(dejavu.add(BiomeScript.class)?Default.BIOME.getAllHelp(dejavu):"")+
+				(dejavu.add(ChunkScript.class)?Default.CHUNK.getAllHelp(dejavu):"")+
 				getHelp();
 	}
 }
