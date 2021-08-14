@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_16",
   "mixins": [
     "Player",
-    "Beacon"
+    "Beacon",
+    "Elytra",
+    "ElytraBoost"
   ],
   "injectors": {
     "defaultRequire": 1

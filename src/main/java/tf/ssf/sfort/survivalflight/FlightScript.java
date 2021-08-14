@@ -17,13 +17,17 @@ public class FlightScript implements PredicateProvider<ServerPlayerEntity> {
         return switch (in) {
             case "beacon" -> {
                 Config.hasBeaconCondition = true;
-                yield (player) -> (((SPEA) player).bf$hasBeacon());
+                yield player -> (((SPEA) player).bf$hasBeacon());
             }
+            case "false" -> player -> false;
+            case "true" -> player -> true;
             default -> Default.SERVER_PLAYER_ENTITY.getPredicate(in, dejavu);
         };
     }
     public static String getHelp(){
         return Default.SERVER_PLAYER_ENTITY.getAllHelp()+
-                String.format("\t%-20s%s%n","beacon","- Require beacon");
+                String.format("\t%-20s%s%n","beacon","- Require beacon")+
+                String.format("\t%-20s%s%n","false","")+
+                String.format("\t%-20s%s%n","true","");
     }
 }
