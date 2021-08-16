@@ -1,9 +1,8 @@
 package tf.ssf.sfort.survivalflight;
 
 import net.minecraft.server.network.ServerPlayerEntity;
-import tf.ssf.sfort.survivalflight.script.Default;
-import tf.ssf.sfort.survivalflight.script.PredicateProvider;
-
+import tf.ssf.sfort.script.Default;
+import tf.ssf.sfort.script.PredicateProvider;
 import java.util.Set;
 import java.util.function.Predicate;
 

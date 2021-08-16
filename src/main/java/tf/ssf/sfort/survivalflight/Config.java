@@ -11,7 +11,7 @@
 	import org.apache.logging.log4j.Level;
 	import org.apache.logging.log4j.LogManager;
 	import org.apache.logging.log4j.Logger;
-	import tf.ssf.sfort.survivalflight.script.ScriptParser;
+	import tf.ssf.sfort.script.ScriptParser;
 
 	import java.io.File;
 	import java.nio.charset.StandardCharsets;
