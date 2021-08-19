@@ -2,6 +2,7 @@ package tf.ssf.sfort.survivalflight;
 
 import net.minecraft.server.network.ServerPlayerEntity;
 import tf.ssf.sfort.script.Default;
+import tf.ssf.sfort.script.Help;
 import tf.ssf.sfort.script.PredicateProvider;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -24,7 +25,8 @@ public class FlightScript implements PredicateProvider<ServerPlayerEntity> {
         };
     }
     public static String getHelp(){
-        return Default.SERVER_PLAYER_ENTITY.getAllHelp()+
+        //TODO exclude
+        return Help.formatHelp(Default.SERVER_PLAYER_ENTITY.getAllHelp(), null)+
                 String.format("\t%-20s%s%n","beacon","- Require beacon")+
                 String.format("\t%-20s%s%n","false","")+
                 String.format("\t%-20s%s%n","true","");
