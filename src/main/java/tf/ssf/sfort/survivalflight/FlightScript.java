@@ -24,6 +24,9 @@ public class FlightScript implements PredicateProvider<ServerPlayerEntity> {
             default -> Default.SERVER_PLAYER_ENTITY.getPredicate(in, dejavu);
         };
     }
+    public Predicate<ServerPlayerEntity> getEmbed(String in, String script, Set<Class<?>> dejavu){
+        return Default.SERVER_PLAYER_ENTITY.getEmbed(in, script, dejavu);
+    }
     public static String getHelp(){
         //TODO exclude
         return Help.formatHelp(Default.SERVER_PLAYER_ENTITY.getAllHelp(), null)+

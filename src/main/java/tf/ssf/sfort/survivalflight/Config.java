@@ -170,7 +170,7 @@
 				if(scriptFile.createNewFile()) {
 					FileUtils.writeStringToFile(scriptFile, "false", StandardCharsets.UTF_8);
 				}
-				Predicate<ServerPlayerEntity> out = new ScriptParser<ServerPlayerEntity>().ScriptParse(Files.readString(scriptFile.toPath()).replaceAll("\\s", ""), new FlightScript());
+				Predicate<ServerPlayerEntity> out = new ScriptParser<>(new FlightScript()).parse(Files.readString(scriptFile.toPath()).replaceAll("\\s", ""));
 				if (out != null)
 					canFly = canFly.and(out);
 				LOGGER.log(Level.INFO, MOD_ID + " successfully loaded flight script file");
@@ -181,7 +181,7 @@
 				if(elytraScriptFile.createNewFile()) {
 					FileUtils.writeStringToFile(elytraScriptFile, "true", StandardCharsets.UTF_8);
 				}
-				Predicate<ServerPlayerEntity> out = new ScriptParser<ServerPlayerEntity>().ScriptParse(Files.readString(elytraScriptFile.toPath()).replaceAll("\\s", ""), new FlightScript());
+				Predicate<ServerPlayerEntity> out = new ScriptParser<>(new FlightScript()).parse(Files.readString(elytraScriptFile.toPath()).replaceAll("\\s", ""));
 				if (out != null)
 					cantElytraFly = cantElytraFly.and(out.negate());
 				LOGGER.log(Level.INFO, MOD_ID + " successfully loaded elytra script file");
@@ -192,7 +192,7 @@
 				if(boostScriptFile.createNewFile()) {
 					FileUtils.writeStringToFile(boostScriptFile, "true", StandardCharsets.UTF_8);
 				}
-				Predicate<ServerPlayerEntity> out = new ScriptParser<ServerPlayerEntity>().ScriptParse(Files.readString(boostScriptFile.toPath()).replaceAll("\\s", ""), new FlightScript());
+				Predicate<ServerPlayerEntity> out = new ScriptParser<>(new FlightScript()).parse(Files.readString(boostScriptFile.toPath()).replaceAll("\\s", ""));
 				if (out != null)
 					cantElytraBoost = cantElytraBoost.and(out.negate());
 				LOGGER.log(Level.INFO, MOD_ID + " successfully loaded elytra boost script file");
