@@ -41,6 +41,9 @@ public class FlightScript implements PredicateProvider<ServerPlayerEntity> {
     public Predicate<ServerPlayerEntity> getEmbed(String in, String script, Set<Class<?>> dejavu){
         return Default.SERVER_PLAYER_ENTITY.getEmbed(in, script, dejavu);
     }
+    public Predicate<ServerPlayerEntity> getEmbed(String in, String val, String script, Set<Class<?>> dejavu){
+        return Default.SERVER_PLAYER_ENTITY.getEmbed(in, val, script, dejavu);
+    }
     public static String getHelp(){
         //TODO filter excluded keys that have options
         return Help.formatHelp(Default.SERVER_PLAYER_ENTITY.getAllHelp(), exclude)+
