@@ -27,7 +27,7 @@ dependencies {
 	//ModMenu
 	modImplementation fabricApi.module("fabric-resource-loader-v0", "${project.fabric_version}")
 	modRuntime(fabricApi.module("fabric-screen-api-v1", "${project.fabric_version}"))
-	modImplementation("com.terraformersmc:modmenu:2.0.3") {
+	modImplementation("com.terraformersmc:modmenu:1.16.22") {
 		transitive = false
 	}
 }

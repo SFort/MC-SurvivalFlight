@@ -41,9 +41,9 @@
 		public static final Consumer<ServerPlayerEntity> tick_init = splayer-> {
 			SPEA player = (SPEA) splayer;
 			if (Config.canFly.test(splayer)) {
-				if (!splayer.getAbilities().allowFlying)
+				if (!splayer.abilities.allowFlying)
 					player.bf$fly();
-			} else if (player.bf$isSurvivalLike() && splayer.getAbilities().allowFlying) {
+			} else if (player.bf$isSurvivalLike() && splayer.abilities.allowFlying) {
 				player.bf$fall();
 			}
 		};
@@ -254,7 +254,7 @@
 					SPEA player = (SPEA) splayer;
 					if (Config.canFly.test(splayer)) {
 						player.bf$tickXP();
-					} else if (player.bf$isSurvivalLike() && splayer.getAbilities().allowFlying) {
+					} else if (player.bf$isSurvivalLike() && splayer.abilities.allowFlying) {
 						player.bf$fall();
 					}
 				};

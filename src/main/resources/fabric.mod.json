@@ -23,7 +23,7 @@
     "modmenu": [ "tf.ssf.sfort.survivalflight.ModMenu" ]
   },
   "depends": {
-    "fscript": ">=1.1.0",
+    "fscript": "*",
     "fabricloader": "*",
     "minecraft": "*"
   }

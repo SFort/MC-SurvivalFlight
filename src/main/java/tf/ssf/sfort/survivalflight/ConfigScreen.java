@@ -13,9 +13,9 @@ public class ConfigScreen extends Screen {
     }
     @Override
     public void init(){
-        addDrawableChild(new ButtonWidget(width/2-75, height/2-30, 150, 20, new LiteralText("Survival Flight Script"),
+        addButton(new ButtonWidget(width/2-75, height/2-30, 150, 20, new LiteralText("Survival Flight Script"),
                 p ->{
-                    client.setScreen(new ScriptingScreen(
+                    client.openScreen(new ScriptingScreen(
                             new LiteralText("Survival Flight Script"),
                             this,
                             new ScriptingScreen.Script(
@@ -28,9 +28,9 @@ public class ConfigScreen extends Screen {
                             )
                     ));
                 }));
-        addDrawableChild(new ButtonWidget(width/2-75, height/2-10, 150, 20, new LiteralText("Elytra Flight Script"),
+        addButton(new ButtonWidget(width/2-75, height/2-10, 150, 20, new LiteralText("Elytra Flight Script"),
                 p ->{
-                    client.setScreen(new ScriptingScreen(
+                    client.openScreen(new ScriptingScreen(
                             new LiteralText("Elytra Flight Script"),
                             this,
                             new ScriptingScreen.Script(
@@ -43,9 +43,9 @@ public class ConfigScreen extends Screen {
                             )
                     ));
                 }));
-        addDrawableChild(new ButtonWidget(width/2-75, height/2+10, 150, 20, new LiteralText("Firework Boost Script"),
+        addButton(new ButtonWidget(width/2-75, height/2+10, 150, 20, new LiteralText("Firework Boost Script"),
                 p ->{
-                    client.setScreen(new ScriptingScreen(
+                    client.openScreen(new ScriptingScreen(
                             new LiteralText("Survival Flight Script"),
                             this,
                             new ScriptingScreen.Script(
@@ -62,6 +62,6 @@ public class ConfigScreen extends Screen {
     }
     @Override
     public void onClose(){
-        client.setScreen(screen);
+        client.openScreen(screen);
     }
 }

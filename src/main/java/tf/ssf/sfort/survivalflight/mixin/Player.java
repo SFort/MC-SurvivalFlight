@@ -58,12 +58,11 @@ public abstract class Player extends PlayerEntity implements SPEA {
     }
     @Override
     public void bf$fly() {
-        getAbilities().allowFlying = true;
+        abilities.allowFlying = true;
         sendAbilitiesUpdate();
     }
     @Override
     public void bf$fall() {
-        PlayerAbilities abilities = getAbilities();
         if (abilities.flying)
             Config.exit.accept((ServerPlayerEntity) (Object)this);
         abilities.allowFlying = false;
@@ -72,9 +71,9 @@ public abstract class Player extends PlayerEntity implements SPEA {
     }
     @Override
     public void bf$tickXP(){
-        if ((totalExperience > 0 || experienceLevel > 0) && !getAbilities().allowFlying)
+        if ((totalExperience > 0 || experienceLevel > 0) && !abilities.allowFlying)
             bf$fly();
-        if (getAbilities().flying) {
+        if (abilities.flying) {
             if (Config.ticksPerXP != 0) {
                 bf$ticksXp++;
                 if (bf$ticksXp >= Config.ticksPerXP) {
@@ -99,7 +98,7 @@ public abstract class Player extends PlayerEntity implements SPEA {
                 bf$timed = Config.cooldown;
                 return false;
             }
-            if(getAbilities().flying) bf$timed++;
+            if(abilities.flying) bf$timed++;
             else if (bf$timed != 0) bf$timed--;
             return true;
         }
