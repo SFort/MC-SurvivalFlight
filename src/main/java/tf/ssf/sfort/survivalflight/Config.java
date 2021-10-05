@@ -11,12 +11,14 @@
 	import org.apache.logging.log4j.Level;
 	import org.apache.logging.log4j.LogManager;
 	import org.apache.logging.log4j.Logger;
+	import tf.ssf.sfort.script.Help;
 	import tf.ssf.sfort.script.ScriptParser;
 
 	import java.io.File;
 	import java.nio.charset.StandardCharsets;
 	import java.nio.file.Files;
 	import java.nio.file.Path;
+	import java.nio.file.StandardOpenOption;
 	import java.util.*;
 	import java.util.function.Consumer;
 	import java.util.function.Predicate;
@@ -52,6 +54,52 @@
 		public static Consumer<ServerPlayerEntity> exitElytra = player -> {};
 		public static Consumer<ServerPlayerEntity> tick = tick_init;
 
+		static Path old_confFolder = FabricLoader.getInstance().getConfigDir();
+		static File old_confFile = new File(old_confFolder.toFile(), "SurvivalFlight.conf");
+		static File old_scriptFile = new File(old_confFolder.toFile(), "SurvivalFlightScript.conf");
+		static File old_scriptHelpFile = new File(old_confFolder.toFile(), "SurvivalFlightScriptHelp.conf");
+		public static Path confFolder = FabricLoader.getInstance().getConfigDir().resolve("SurvivalFlight");
+		public static File confFile = new File(confFolder.toFile(), "general.conf");
+		public static File scriptFile = new File(confFolder.toFile(), "creative_flight.script");
+		public static File scriptHelpFile = new File(confFolder.toFile(), "script_help.txt");
+		public static File elytraScriptFile = new File(confFolder.toFile(), "elytra_flight.script");
+		public static File boostScriptFile = new File(confFolder.toFile(), "elytra_boost.script");
+		public static void write(File file, String in){
+			try {
+				FileUtils.writeStringToFile(file, in, StandardCharsets.UTF_8);
+				resetsettings();
+				reload_settings();
+			} catch (Exception e) {
+				LOGGER.log(Level.ERROR, MOD_ID +" failed to write script file\n"+e);
+			}
+		}
+		public static void writeFly(String in){
+			write(scriptFile, in);
+		}
+		public static void writeElytra(String in){
+			write(elytraScriptFile, in);
+		}
+		public static void writeElytraBoost(String in){
+			write(boostScriptFile, in);
+		}
+		public static String read(File file){
+			try {
+				return Files.readString(scriptFile.toPath()).replaceAll("\\s", "");
+			} catch (Exception e) {
+				LOGGER.log(Level.ERROR, MOD_ID +" failed to read script file\n"+e);
+			}
+			return "";
+		}
+		public static String readFly(){
+			return read(scriptFile);
+		}
+		public static String readElytra(){
+			return read(elytraScriptFile);
+		}
+		public static String readElytraBoost(){
+			return read(boostScriptFile);
+		}
+
 		public static void resetsettings(){
 			hasBeaconCondition = false;
 			canFly = canFly_init;
@@ -70,16 +118,7 @@
 		}
 		public static void reload_settings(){
 			// Configs
-			Path confFolder = FabricLoader.getInstance().getConfigDir();
-			File old_confFile = new File(confFolder.toFile(), "SurvivalFlight.conf");
-			File old_scriptFile = new File(confFolder.toFile(), "SurvivalFlightScript.conf");
-			File old_scriptHelpFile = new File(confFolder.toFile(), "SurvivalFlightScriptHelp.conf");
-			confFolder = confFolder.resolve("SurvivalFlight");
-			File confFile = new File(confFolder.toFile(), "general.conf");
-			File scriptFile = new File(confFolder.toFile(), "creative_flight.script");
-			File scriptHelpFile = new File(confFolder.toFile(), "script_help.txt");
-			File elytraScriptFile = new File(confFolder.toFile(), "elytra_flight.script");
-			File boostScriptFile = new File(confFolder.toFile(), "elytra_boost.script");
+
 			if(!confFolder.toFile().isDirectory()){
 				if(confFolder.toFile().mkdirs()){
 					old_scriptHelpFile.delete();
@@ -97,13 +136,21 @@
 					ls[i*2+1]= defaultDesc.get(i);
 				int i = 0;
 				boolean generateScriptHelp = false;
+				boolean generateLudicrousHelp = false;
 				try {
 					generateScriptHelp =ls[i].contains("true");
+					generateLudicrousHelp =ls[i].contains("ludicrous");
 				}catch (Exception ignored){}
-				if (generateScriptHelp) writeScriptHelp(scriptHelpFile.toPath());
-				ls[i]=String.valueOf(generateScriptHelp);
+				if (generateScriptHelp || generateLudicrousHelp)
+					try {
+						Files.writeString(scriptHelpFile.toPath(), scriptHelp);
+					}catch (Exception e){ LOGGER.log(Level.WARN, MOD_ID +" #0\n"+e); }
+				if (generateLudicrousHelp)
+					try {
+						Files.writeString(scriptHelpFile.toPath(), Help.Parameter.intoString(), StandardOpenOption.APPEND);
+					}catch (Exception e){ LOGGER.log(Level.WARN, MOD_ID +" #0\n"+e); }
+				ls[i]=generateLudicrousHelp? "ludicrous" :String.valueOf(generateScriptHelp);
 				i+=2;
-
 				try{
 					xpPerTick = Integer.parseInt(ls[i]);
 				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
@@ -218,7 +265,7 @@
 		}
 
         public static final List<String> defaultDesc = Arrays.asList(
-                "^-Generate Script Help? [true] true | false",
+                "^-Generate Script Help? [true] true | ludicrous | false //note that some values are only available while in a world you can get them by running /ssf load survivalflight then disabling this setting",
                 "^-Xp consumed per tick [0] 0 - ..",
                 "^-Consume 1XP per X ticks [0] 0 - .. // if you prefer decimals/tick putting in for e.g.: 0.2 xp/t will auto translate",
                 "^-Apply effect to player on mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
@@ -229,18 +276,13 @@
 				"^-Apply effect to player on elytra mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20"
 				);
 		public static final String scriptHelp = """
-				I decided to burn a day and make this mod stupidly configurable.
 				Lines are ignored.
 				Available operations:
 				"""+ ScriptParser.getHelp()+
 				"\nAvailable Conditions:\n"+
-				FlightScript.getHelp()
+				Help.formatHelp(new FlightScript(), FlightScript.exclude);
 				;
-		private static void writeScriptHelp(Path path){
-			try {
-				Files.writeString(path, scriptHelp);
-			}catch (Exception e){ LOGGER.log(Level.WARN, MOD_ID +" #0\n"+e); }
-		}
+
 		private static Predicate<ServerPlayerEntity> bit_and(Predicate<ServerPlayerEntity> p1, Predicate<ServerPlayerEntity> p2){
 			return p -> p1.test(p) & p2.test(p);
 		}

@@ -19,10 +19,11 @@
     "survivalflight.mixins.json"
   ],
   "entrypoints": {
-    "main": ["tf.ssf.sfort.survivalflight.Config"]
+    "main": ["tf.ssf.sfort.survivalflight.Config"],
+    "modmenu": [ "tf.ssf.sfort.survivalflight.ModMenu" ]
   },
   "depends": {
-    "fscript": "*",
+    "fscript": ">=1.1.0",
     "fabricloader": "*",
     "minecraft": "*"
   }

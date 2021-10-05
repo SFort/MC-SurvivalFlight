@@ -8,8 +8,8 @@ public class Commands {
     public static void register(){
         try {
             CommandRegistrationCallback.EVENT.register((dispatcher, dedi) -> {
-                dispatcher.register(LiteralArgumentBuilder.<ServerCommandSource>literal("ssf")
-                        .then(LiteralArgumentBuilder.<ServerCommandSource>literal("load")
+                LiteralArgumentBuilder<ServerCommandSource> ssf = LiteralArgumentBuilder.literal("ssf");
+                dispatcher.register(ssf.then(LiteralArgumentBuilder.<ServerCommandSource>literal("load")
                                 .then(LiteralArgumentBuilder.<ServerCommandSource>literal("survivalflight")
                                         .requires(pred -> pred.hasPermissionLevel(2))
                                         .executes((c) -> {
@@ -17,7 +17,6 @@ public class Commands {
                                             Config.reload_settings();
                                             return 1;
                                         }))));
-
             });
         }catch (Exception ignore){}
     }
