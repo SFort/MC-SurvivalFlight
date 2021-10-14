@@ -3,6 +3,7 @@
   "minVersion": "0.8",
   "package": "tf.ssf.sfort.survivalflight.mixin",
   "compatibilityLevel": "JAVA_16",
+  "plugin" : "tf.ssf.sfort.survivalflight.mixin.MixinConfig",
   "mixins": [
     "Player",
     "Beacon",

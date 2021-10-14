@@ -278,7 +278,7 @@
 				"^-Flight duration in ticks before cool-down starts [0]",
 				"^-Flight cool-down in ticks [0]",
 				"^-Apply effect to player on elytra mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
-				"^-Allow gliding without an elytra [false] true | false //WARNING disables vanilla elytra item and Requires mod to be installed on client and server. will also add slight delay as check needs to be server side (changing setting needs game restart)"
+				"^-Allow gliding without an elytra [false] true | false //WARNING disables vanilla elytra and Requires mod to be installed on client and server. (changing setting needs game restart)"
 				);
 		public static final String scriptHelp = """
 				Lines are ignored.
