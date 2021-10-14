@@ -4,6 +4,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.LiteralText;
 import tf.ssf.sfort.script.ScriptingScreen;
+import tf.ssf.sfort.survivalflight.mixin.MixinConfig;
 
 public class ConfigScreen extends Screen {
     final Screen screen;

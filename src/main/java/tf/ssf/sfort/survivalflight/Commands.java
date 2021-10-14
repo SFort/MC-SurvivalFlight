@@ -3,6 +3,7 @@ package tf.ssf.sfort.survivalflight;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.minecraft.server.command.ServerCommandSource;
+import tf.ssf.sfort.survivalflight.mixin.MixinConfig;
 
 public class Commands {
     public static void register(){

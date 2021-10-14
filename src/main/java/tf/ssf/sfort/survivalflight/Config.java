@@ -25,8 +25,8 @@
 
 	//TODO use mixin plugin
 	public class Config implements ModInitializer {
-		private static final String MOD_ID = "tf.ssf.sfort.survivalflight";
-		public static Logger LOGGER = LogManager.getLogger();
+		public static final String MOD_ID = "tf.ssf.sfort.survivalflight";
+		public static final Logger LOGGER = LogManager.getLogger();
 
 
 		public static int duration = 0;
@@ -36,8 +36,8 @@
 		public static int ticksPerXP = 0;
 		public static boolean hasBeaconCondition = false;
         private static boolean registerCommands = true;
+		public static boolean elytraFreeFallFly = false;
 		public static final Predicate<ServerPlayerEntity> canFly_init = player -> ((SPEA)player).bf$isSurvivalLike();
-		public static final Predicate<ServerPlayerEntity> cantEltytra_init = player -> ((SPEA)player).bf$isSurvivalLike();
 		public static final Consumer<ServerPlayerEntity> tick_init = splayer-> {
 			SPEA player = (SPEA) splayer;
 			if (Config.canFly.test(splayer)) {
@@ -48,8 +48,8 @@
 			}
 		};
 		public static Predicate<ServerPlayerEntity> canFly = canFly_init;
-		public static Predicate<ServerPlayerEntity> cantElytraFly = cantEltytra_init;
-		public static Predicate<ServerPlayerEntity> cantElytraBoost = cantEltytra_init;
+		public static Predicate<ServerPlayerEntity> canElytraFly = null;
+		public static Predicate<ServerPlayerEntity> canElytraBoost = null;
 		public static Consumer<ServerPlayerEntity> exit = player -> {};
 		public static Consumer<ServerPlayerEntity> exitElytra = player -> {};
 		public static Consumer<ServerPlayerEntity> tick = tick_init;
@@ -84,7 +84,7 @@
 		}
 		public static String read(File file){
 			try {
-				return Files.readString(scriptFile.toPath()).replaceAll("\\s", "");
+				return Files.readString(file.toPath()).replaceAll("\\s", "");
 			} catch (Exception e) {
 				LOGGER.log(Level.ERROR, MOD_ID +" failed to read script file\n"+e);
 			}
@@ -106,8 +106,8 @@
 			exit = player -> {};
 			exitElytra = player -> {};
 			tick = tick_init;
-			cantElytraBoost = cantEltytra_init;
-			cantElytraFly = cantEltytra_init;
+			canElytraBoost = null;
+			canElytraFly = null;
 		}
         @Override
 		public void onInitialize() {
@@ -204,6 +204,12 @@
 					StatusEffect exit_effect = SimpleRegistry.STATUS_EFFECT.get(new Identifier(ls[i].substring(0,indx)));
 					exitElytra = exitElytra.andThen((player) -> player.addStatusEffect(new StatusEffectInstance(exit_effect, duration)));
 				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
+				i+=2;
+
+				try{
+					elytraFreeFallFly = ls[i].contains("true");
+				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
+				ls[i] = String.valueOf(elytraFreeFallFly);
 
 				if (hash != Arrays.hashCode(ls))
 					Files.write(confFile.toPath(), Arrays.asList(ls));
@@ -228,8 +234,7 @@
 					FileUtils.writeStringToFile(elytraScriptFile, "true", StandardCharsets.UTF_8);
 				}
 				Predicate<ServerPlayerEntity> out = new ScriptParser<>(new FlightScript()).parse(Files.readString(elytraScriptFile.toPath()).replaceAll("\\s", ""));
-				if (out != null)
-					cantElytraFly = cantElytraFly.and(out.negate());
+				canElytraFly = out;
 				LOGGER.log(Level.INFO, MOD_ID + " successfully loaded elytra script file");
 			} catch (Exception e) {
 				LOGGER.log(Level.ERROR, MOD_ID +" failed to load elytra script file\n"+e);
@@ -239,8 +244,7 @@
 					FileUtils.writeStringToFile(boostScriptFile, "true", StandardCharsets.UTF_8);
 				}
 				Predicate<ServerPlayerEntity> out = new ScriptParser<>(new FlightScript()).parse(Files.readString(boostScriptFile.toPath()).replaceAll("\\s", ""));
-				if (out != null)
-					cantElytraBoost = cantElytraBoost.and(out.negate());
+				canElytraBoost = out;
 				LOGGER.log(Level.INFO, MOD_ID + " successfully loaded elytra boost script file");
 			} catch (Exception e) {
 				LOGGER.log(Level.ERROR, MOD_ID +" failed to load elytra boost script file\n"+e);
@@ -265,15 +269,16 @@
 		}
 
         public static final List<String> defaultDesc = Arrays.asList(
-                "^-Generate Script Help? [true] true | ludicrous | false //note that some values are only available while in a world you can get them by running /ssf load survivalflight then disabling this setting",
-                "^-Xp consumed per tick [0] 0 - ..",
-                "^-Consume 1XP per X ticks [0] 0 - .. // if you prefer decimals/tick putting in for e.g.: 0.2 xp/t will auto translate",
-                "^-Apply effect to player on mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
+				"^-Generate Script Help? [true] true | ludicrous | false //note that some values are only available while in a world you can get them by running /ssf load survivalflight then disabling this setting",
+				"^-Xp consumed per tick [0] 0 - ..",
+				"^-Consume 1XP per X ticks [0] 0 - .. // if you prefer decimals/tick putting in for e.g.: 0.2 xp/t will auto translate",
+				"^-Apply effect to player on mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
 				"^-Required beacon level for beacon setting [0] 1-4",
-				"^-Add reload settings command",
+				"^-Add reload settings command [true] true | false // (changing setting needs game restart)",
 				"^-Flight duration in ticks before cool-down starts [0]",
 				"^-Flight cool-down in ticks [0]",
-				"^-Apply effect to player on elytra mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20"
+				"^-Apply effect to player on elytra mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
+				"^-Allow gliding without an elytra [false] true | false //WARNING disables vanilla elytra item and Requires mod to be installed on client and server. will also add slight delay as check needs to be server side (changing setting needs game restart)"
 				);
 		public static final String scriptHelp = """
 				Lines are ignored.

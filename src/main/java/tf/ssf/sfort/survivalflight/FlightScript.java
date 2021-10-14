@@ -4,12 +4,13 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import tf.ssf.sfort.script.Default;
 import tf.ssf.sfort.script.Help;
 import tf.ssf.sfort.script.PredicateProvider;
+import tf.ssf.sfort.survivalflight.mixin.MixinConfig;
 
 import java.util.*;
 import java.util.function.Predicate;
 
 public class FlightScript implements PredicateProvider<ServerPlayerEntity>, Help {
-    static Set<String> exclude = new HashSet<>();
+    public static Set<String> exclude = new HashSet<>();
     public static final Map<String, String> help = new HashMap<>();
 
 

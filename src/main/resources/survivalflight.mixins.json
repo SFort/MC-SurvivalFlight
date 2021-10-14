@@ -7,7 +7,12 @@
     "Player",
     "Beacon",
     "Elytra",
-    "ElytraBoost"
+    "ElytraBoost",
+    "FallFly",
+    "FallFlyTick"
+  ],
+  "client": [
+    "FallFlyClient"
   ],
   "injectors": {
     "defaultRequire": 1

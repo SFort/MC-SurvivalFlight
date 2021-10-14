@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import tf.ssf.sfort.survivalflight.Config;
+import tf.ssf.sfort.survivalflight.SPEA;
 
 @Mixin(FireworkRocketItem.class)
 public abstract class ElytraBoost {
@@ -19,8 +20,11 @@ public abstract class ElytraBoost {
     @Inject(at=@At("HEAD"), method= "use(Lnet/minecraft/world/World;Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/Hand;)Lnet/minecraft/util/TypedActionResult;",
             cancellable = true)
     private void scriptCheck(World world, PlayerEntity user, Hand hand, CallbackInfoReturnable<TypedActionResult<ItemStack>> cir) {
-        if (user instanceof ServerPlayerEntity && Config.cantElytraBoost.test((ServerPlayerEntity)user)) {
+        if (user instanceof ServerPlayerEntity
+                && ((SPEA)user).bf$isSurvivalLike()
+                && Config.canElytraBoost != null
+                && !Config.canElytraBoost.test((ServerPlayerEntity)user)
+        )
             cir.setReturnValue(TypedActionResult.pass(user.getStackInHand(hand)));
-        }
     }
 }
