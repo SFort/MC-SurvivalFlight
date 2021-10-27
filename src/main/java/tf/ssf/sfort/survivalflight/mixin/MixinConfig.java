@@ -23,11 +23,12 @@
 		@Override
 		public void onLoad(String mixinPackage) {
 			try {
-				boolean existing = !confFile.createNewFile();
-				List<String> la = Files.readAllLines(confFile.toPath());
 				try{
-					elytraFreeFallFly = la.get(18).contains("true");
-				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #Mixin18\n"+e); }
+					if (!confFile.isFile()) return;
+					List<String> la = Files.readAllLines(confFile.toPath());
+					if (la.size()>18)
+						elytraFreeFallFly = la.get(18).contains("true");
+				}catch (Exception e){ LOGGER.log(Level.INFO, MOD_ID +" #Mixin18\n"+e); }
 			} catch(Exception e) {
 				LOGGER.log(Level.ERROR, MOD_ID +" failed to load config file for Mixin, using defaults\n"+e);
 			}
