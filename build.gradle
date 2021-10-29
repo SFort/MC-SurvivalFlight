@@ -1,9 +1,9 @@
 plugins {
-	id 'fabric-loom' version '0.9-SNAPSHOT'
+	id 'fabric-loom' version '0.5-SNAPSHOT'
 }
 
-sourceCompatibility = JavaVersion.VERSION_16
-targetCompatibility = JavaVersion.VERSION_16
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version
@@ -18,7 +18,7 @@ repositories {
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation ("net.fabricmc:fabric-loader:${project.loader_version}")
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation ("tf.ssf.sfort:fscript:${project.fscript_version}"){
 		transitive = false
 	}
@@ -27,7 +27,7 @@ dependencies {
 	//ModMenu
 	modImplementation fabricApi.module("fabric-resource-loader-v0", "${project.fabric_version}")
 	modRuntime(fabricApi.module("fabric-screen-api-v1", "${project.fabric_version}"))
-	modImplementation("com.terraformersmc:modmenu:1.16.22") {
+	modImplementation("com.terraformersmc:modmenu:1.16.6") {
 		transitive = false
 	}
 }
@@ -39,12 +39,8 @@ processResources {
 		expand "version": project.version
 	}
 }
-
 tasks.withType(JavaCompile) {
 	options.encoding = "UTF-8"
-}
-java {
-	withSourcesJar()
 }
 
 jar {

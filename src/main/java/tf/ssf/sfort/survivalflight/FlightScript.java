@@ -20,15 +20,15 @@ public class FlightScript implements PredicateProvider<ServerPlayerEntity>, Help
 
     public Predicate<ServerPlayerEntity> getPredicate(String in, Set<Class<?>> dejavu){
         if(exclude.contains(in)) return null;
-        return switch (in) {
-            case "beacon" -> {
+        switch (in) {
+            case "beacon" : {
                 Config.hasBeaconCondition = true;
-                yield player -> (((SPEA) player).bf$hasBeacon());
+                return player -> (((SPEA) player).bf$hasBeacon());
             }
-            case "false" -> player -> false;
-            case "true" -> player -> true;
-            default -> Default.SERVER_PLAYER_ENTITY.getPredicate(in, dejavu);
-        };
+            case "false": return player -> false;
+            case "true": return player -> true;
+            default: return Default.SERVER_PLAYER_ENTITY.getPredicate(in, dejavu);
+        }
     }
     public Predicate<ServerPlayerEntity> getEmbed(String in, String script, Set<Class<?>> dejavu){
         return Default.SERVER_PLAYER_ENTITY.getEmbed(in, script, dejavu);

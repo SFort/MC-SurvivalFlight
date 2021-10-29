@@ -22,6 +22,7 @@
 	import java.util.*;
 	import java.util.function.Consumer;
 	import java.util.function.Predicate;
+	import java.util.stream.Collectors;
 
 	//TODO use mixin plugin
 	public class Config implements ModInitializer {
@@ -84,7 +85,7 @@
 		}
 		public static String read(File file){
 			try {
-				return Files.readString(scriptFile.toPath()).replaceAll("\\s", "");
+				return Files.readAllLines(scriptFile.toPath()).stream().collect(Collectors.joining()).replaceAll("\\s", "");
 			} catch (Exception e) {
 				LOGGER.log(Level.ERROR, MOD_ID +" failed to read script file\n"+e);
 			}
@@ -143,11 +144,11 @@
 				}catch (Exception ignored){}
 				if (generateScriptHelp || generateLudicrousHelp)
 					try {
-						Files.writeString(scriptHelpFile.toPath(), scriptHelp);
+						Files.write(scriptHelpFile.toPath(), Arrays.asList(scriptHelp.split("\n")));
 					}catch (Exception e){ LOGGER.log(Level.WARN, MOD_ID +" #0\n"+e); }
 				if (generateLudicrousHelp)
 					try {
-						Files.writeString(scriptHelpFile.toPath(), Help.Parameter.intoString(), StandardOpenOption.APPEND);
+						Files.write(scriptHelpFile.toPath(), Arrays.asList(Help.Parameter.intoString().split("\n")), StandardOpenOption.APPEND);
 					}catch (Exception e){ LOGGER.log(Level.WARN, MOD_ID +" #0\n"+e); }
 				ls[i]=generateLudicrousHelp? "ludicrous" :String.valueOf(generateScriptHelp);
 				i+=2;
@@ -216,7 +217,7 @@
 				if(scriptFile.createNewFile()) {
 					FileUtils.writeStringToFile(scriptFile, "false", StandardCharsets.UTF_8);
 				}
-				Predicate<ServerPlayerEntity> out = new ScriptParser<>(new FlightScript()).parse(Files.readString(scriptFile.toPath()).replaceAll("\\s", ""));
+				Predicate<ServerPlayerEntity> out = new ScriptParser<>(new FlightScript()).parse(Files.readAllLines(scriptFile.toPath()).stream().collect(Collectors.joining()).replaceAll("\\s", ""));
 				if (out != null)
 					canFly = canFly.and(out);
 				LOGGER.log(Level.INFO, MOD_ID + " successfully loaded flight script file");
@@ -227,7 +228,7 @@
 				if(elytraScriptFile.createNewFile()) {
 					FileUtils.writeStringToFile(elytraScriptFile, "true", StandardCharsets.UTF_8);
 				}
-				Predicate<ServerPlayerEntity> out = new ScriptParser<>(new FlightScript()).parse(Files.readString(elytraScriptFile.toPath()).replaceAll("\\s", ""));
+				Predicate<ServerPlayerEntity> out = new ScriptParser<>(new FlightScript()).parse(Files.readAllLines(elytraScriptFile.toPath()).stream().collect(Collectors.joining()).replaceAll("\\s", ""));
 				if (out != null)
 					cantElytraFly = cantElytraFly.and(out.negate());
 				LOGGER.log(Level.INFO, MOD_ID + " successfully loaded elytra script file");
@@ -238,7 +239,7 @@
 				if(boostScriptFile.createNewFile()) {
 					FileUtils.writeStringToFile(boostScriptFile, "true", StandardCharsets.UTF_8);
 				}
-				Predicate<ServerPlayerEntity> out = new ScriptParser<>(new FlightScript()).parse(Files.readString(boostScriptFile.toPath()).replaceAll("\\s", ""));
+				Predicate<ServerPlayerEntity> out = new ScriptParser<>(new FlightScript()).parse(Files.readAllLines(boostScriptFile.toPath()).stream().collect(Collectors.joining()).replaceAll("\\s", ""));
 				if (out != null)
 					cantElytraBoost = cantElytraBoost.and(out.negate());
 				LOGGER.log(Level.INFO, MOD_ID + " successfully loaded elytra boost script file");
@@ -275,10 +276,7 @@
 				"^-Flight cool-down in ticks [0]",
 				"^-Apply effect to player on elytra mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20"
 				);
-		public static final String scriptHelp = """
-				Lines are ignored.
-				Available operations:
-				"""+ ScriptParser.getHelp()+
+		public static final String scriptHelp = "Lines are ignored.\nAvailable operations:\n"+ ScriptParser.getHelp()+
 				"\nAvailable Conditions:\n"+
 				Help.formatHelp(new FlightScript(), FlightScript.exclude);
 				;
