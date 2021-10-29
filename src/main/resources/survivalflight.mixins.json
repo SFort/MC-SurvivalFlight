@@ -3,11 +3,17 @@
   "minVersion": "0.8",
   "package": "tf.ssf.sfort.survivalflight.mixin",
   "compatibilityLevel": "JAVA_8",
+  "plugin" : "tf.ssf.sfort.survivalflight.mixin.MixinConfig",
   "mixins": [
     "Player",
     "Beacon",
     "Elytra",
-    "ElytraBoost"
+    "ElytraBoost",
+    "FallFly",
+    "FallFlyTick"
+  ],
+  "client": [
+    "FallFlyClient"
   ],
   "injectors": {
     "defaultRequire": 1
