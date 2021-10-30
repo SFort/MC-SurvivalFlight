@@ -8,7 +8,7 @@ public class CommandsClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         if (FabricLoader.getInstance().isModLoaded("fabric-command-api-v1")){
-            Commands.registerClient();
+            CommandsClientRegister.registerClient();
         }
     }
 }
