@@ -14,6 +14,9 @@ repositories {
 		name = "TerraformersMC"
 		url = "https://maven.terraformersmc.com/releases"
 	}
+	maven {
+		url = "https://maven.ssf.tf/"
+	}
 }
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
