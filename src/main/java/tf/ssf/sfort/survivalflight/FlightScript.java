@@ -24,7 +24,11 @@ public class FlightScript implements PredicateProvider<ServerPlayerEntity>, Help
         return switch (in) {
             case "beacon" -> {
                 Config.hasBeaconCondition = true;
-                yield player -> (((SPEA) player).bf$hasBeacon());
+                yield player -> (((SPEA) player).bf$hasBeaconTicks() && ((SPEA)player).bf$hasBeaconPing());
+            }
+            case "beacon_delayed" -> {
+                Config.hasBeaconCondition = true;
+                yield player -> (((SPEA) player).bf$hasBeaconTicks());
             }
             case "false" -> player -> false;
             case "true" -> player -> true;
@@ -54,6 +58,7 @@ public class FlightScript implements PredicateProvider<ServerPlayerEntity>, Help
         exclude.add("on_ground");
 
         help.put("beacon","Require beacon");
+        help.put("beacon_delayed","Require beacon, but it's still valid if outside of range as long as effects apply");
         help.put("false","");
         help.put("true","");
     }

@@ -53,8 +53,12 @@ public abstract class Player extends PlayerEntity implements SPEA {
         return this.interactionManager.getGameMode().isSurvivalLike();
     }
     @Override
-    public boolean bf$hasBeacon(){
-        return bf$ticksLeft>0 && bf$ping != null && bf$ping.contains(getPos());
+    public boolean bf$hasBeaconTicks(){
+        return bf$ticksLeft>0;
+    }
+    @Override
+    public boolean bf$hasBeaconPing(){
+        return bf$ping != null && bf$ping.contains(getPos());
     }
     @Override
     public void bf$fly() {
