@@ -221,7 +221,7 @@
 				i+=2;
 
 				try{
-					registerPlayerAbilityLib = ls[i].contains("true");
+					registerPlayerAbilityLib = !ls[i].contains("false");
 				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
 				ls[i] = String.valueOf(registerPlayerAbilityLib);
 
