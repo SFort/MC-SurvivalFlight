@@ -36,6 +36,8 @@
 		public static int ticksPerXP = 0;
 		public static boolean hasBeaconCondition = false;
         private static boolean registerCommands = true;
+		private static boolean registerPlayerAbilityLib = true;
+		public static boolean keepPlayerAbilityLib = true;
 		public static boolean elytraFreeFallFly = false;
 		public static final Predicate<ServerPlayerEntity> canFly_init = player -> ((SPEA)player).bf$isSurvivalLike();
 		public static final Consumer<ServerPlayerEntity> tick_init = splayer-> {
@@ -115,6 +117,11 @@
 			if (FabricLoader.getInstance().isModLoaded("fabric-command-api-v1") && registerCommands){
 				Commands.register();
 			}
+		}
+		public static void borkedPlayerAbilityLib(){
+			Config.keepPlayerAbilityLib = false;
+			Config.resetsettings();
+			Config.reload_settings();
 		}
 		public static void reload_settings(){
 			// Configs
@@ -210,6 +217,12 @@
 					elytraFreeFallFly = ls[i].contains("true");
 				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
 				ls[i] = String.valueOf(elytraFreeFallFly);
+				i+=2;
+
+				try{
+					registerPlayerAbilityLib = ls[i].contains("true");
+				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
+				ls[i] = String.valueOf(registerPlayerAbilityLib);
 
 				if (hash != Arrays.hashCode(ls))
 					Files.write(confFile.toPath(), Arrays.asList(ls));
@@ -252,16 +265,29 @@
 			if(duration != 0 || cooldown != 0)
 				canFly = bit_and(canFly, player -> ((SPEA)player).bf$tickTimed());
 
+
 			//TODO probably merge into canFly
 			if (ticksPerXP != 0 || xpPerTick != 0){
-				tick = splayer-> {
-					SPEA player = (SPEA) splayer;
-					if (Config.canFly.test(splayer)) {
-						player.bf$tickXP();
-					} else if (player.bf$isSurvivalLike() && splayer.getAbilities().allowFlying) {
-						player.bf$fall();
-					}
-				};
+				if (FabricLoader.getInstance().isModLoaded("playerabilitylib") && registerPlayerAbilityLib && keepPlayerAbilityLib) {
+					PlayerAbilityLibCompat.addXp();
+				}else{
+					tick = splayer -> {
+						SPEA player = (SPEA) splayer;
+						if (Config.canFly.test(splayer)) {
+							if ((splayer.totalExperience > 0 || splayer.experienceLevel > 0) && !splayer.getAbilities().allowFlying)
+								player.bf$fly();
+							if (splayer.getAbilities().flying) {
+								player.bf$tickXP();
+								if (splayer.totalExperience == 0 && splayer.experienceLevel == 0)
+									player.bf$fall();
+							}
+						} else if (player.bf$isSurvivalLike() && splayer.getAbilities().allowFlying) {
+							player.bf$fall();
+						}
+					};
+				}
+			}else if (FabricLoader.getInstance().isModLoaded("playerabilitylib") && registerPlayerAbilityLib && keepPlayerAbilityLib) {
+				PlayerAbilityLibCompat.init();
 			}
 			if(hasBeaconCondition) {
 				tick = ((Consumer<ServerPlayerEntity>)p -> ((SPEA) p).bf$tickBeacon()).andThen(tick);
@@ -278,7 +304,8 @@
 				"^-Flight duration in ticks before cool-down starts [0]",
 				"^-Flight cool-down in ticks [0]",
 				"^-Apply effect to player on elytra mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
-				"^-Allow gliding without an elytra [false] true | false //WARNING disables vanilla elytra and Requires mod to be installed on client and server. (changing setting needs game restart)"
+				"^-Allow gliding without an elytra [false] true | false //WARNING disables vanilla elytra and Requires mod to be installed on client and server. (changing setting needs game restart)",
+				"^-Enable PlayerAbilityLib compatibility [true] true | false //change if you need survival flight to disable other mods flight implementations"
 				);
 		public static final String scriptHelp = """
 				Lines are ignored.
