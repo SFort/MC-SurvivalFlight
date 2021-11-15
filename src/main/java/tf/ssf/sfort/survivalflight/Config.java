@@ -27,16 +27,18 @@
 	//TODO use mixin plugin
 	public class Config implements ModInitializer {
 		public static final String MOD_ID = "tf.ssf.sfort.survivalflight";
-		public static Logger LOGGER = LogManager.getLogger();
+		public static final Logger LOGGER = LogManager.getLogger();
 
 
 		public static int duration = 0;
 		public static int cooldown = 0;
-        public static int xpPerTick = 0;
+		public static int xpPerTick = 0;
 		public static int beaconLevel = 0;
 		public static int ticksPerXP = 0;
 		public static boolean hasBeaconCondition = false;
-        private static boolean registerCommands = true;
+		private static boolean registerCommands = true;
+		private static boolean registerPlayerAbilityLib = true;
+		public static boolean keepPlayerAbilityLib = true;
 		public static boolean elytraFreeFallFly = false;
 		public static final Predicate<ServerPlayerEntity> canFly_init = player -> ((SPEA)player).bf$isSurvivalLike();
 		public static final Consumer<ServerPlayerEntity> tick_init = splayer-> {
@@ -110,12 +112,17 @@
 			canElytraBoost = null;
 			canElytraFly = null;
 		}
-        @Override
+		@Override
 		public void onInitialize() {
-        	reload_settings();
+			reload_settings();
 			if (FabricLoader.getInstance().isModLoaded("fabric-command-api-v1") && registerCommands){
 				Commands.register();
 			}
+		}
+		public static void borkedPlayerAbilityLib(){
+			Config.keepPlayerAbilityLib = false;
+			Config.resetsettings();
+			Config.reload_settings();
 		}
 		public static void reload_settings(){
 			// Configs
@@ -211,6 +218,12 @@
 					elytraFreeFallFly = ls[i].contains("true");
 				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
 				ls[i] = String.valueOf(elytraFreeFallFly);
+				i+=2;
+
+				try{
+					registerPlayerAbilityLib = ls[i].contains("true");
+				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
+				ls[i] = String.valueOf(registerPlayerAbilityLib);
 
 				if (hash != Arrays.hashCode(ls))
 					Files.write(confFile.toPath(), Arrays.asList(ls));
@@ -255,31 +268,44 @@
 
 			//TODO probably merge into canFly
 			if (ticksPerXP != 0 || xpPerTick != 0){
-				tick = splayer-> {
-					SPEA player = (SPEA) splayer;
-					if (Config.canFly.test(splayer)) {
-						player.bf$tickXP();
-					} else if (player.bf$isSurvivalLike() && splayer.abilities.allowFlying) {
-						player.bf$fall();
-					}
-				};
+				if (FabricLoader.getInstance().isModLoaded("playerabilitylib") && registerPlayerAbilityLib && keepPlayerAbilityLib) {
+					PlayerAbilityLibCompat.addXp();
+				}else{
+					tick = splayer -> {
+						SPEA player = (SPEA) splayer;
+						if (Config.canFly.test(splayer)) {
+							if ((splayer.totalExperience > 0 || splayer.experienceLevel > 0) && !splayer.abilities.allowFlying)
+								player.bf$fly();
+							if (splayer.abilities.flying) {
+								player.bf$tickXP();
+								if (splayer.totalExperience == 0 && splayer.experienceLevel == 0)
+									player.bf$fall();
+							}
+						} else if (player.bf$isSurvivalLike() && splayer.abilities.allowFlying) {
+							player.bf$fall();
+						}
+					};
+				}
+			}else if (FabricLoader.getInstance().isModLoaded("playerabilitylib") && registerPlayerAbilityLib && keepPlayerAbilityLib) {
+				PlayerAbilityLibCompat.init();
 			}
 			if(hasBeaconCondition) {
 				tick = ((Consumer<ServerPlayerEntity>)p -> ((SPEA) p).bf$tickBeacon()).andThen(tick);
 			}
 		}
 
-        public static final List<String> defaultDesc = Arrays.asList(
-                "^-Generate Script Help? [true] true | ludicrous | false //note that some values are only available while in a world you can get them by running /ssf load survivalflight then disabling this setting",
-                "^-Xp consumed per tick [0] 0 - ..",
-                "^-Consume 1XP per X ticks [0] 0 - .. // if you prefer decimals/tick putting in for e.g.: 0.2 xp/t will auto translate",
-                "^-Apply effect to player on mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
+		public static final List<String> defaultDesc = Arrays.asList(
+				"^-Generate Script Help? [true] true | ludicrous | false //note that some values are only available while in a world you can get them by running /ssf load survivalflight then disabling this setting",
+				"^-Xp consumed per tick [0] 0 - ..",
+				"^-Consume 1XP per X ticks [0] 0 - .. // if you prefer decimals/tick putting in for e.g.: 0.2 xp/t will auto translate",
+				"^-Apply effect to player on mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
 				"^-Required beacon level for beacon setting [0] 1-4",
-				"^-Add reload settings command",
+				"^-Add reload settings command [true] true | false // (changing setting needs game restart)",
 				"^-Flight duration in ticks before cool-down starts [0]",
 				"^-Flight cool-down in ticks [0]",
 				"^-Apply effect to player on elytra mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
-				"^-Allow gliding without an elytra [false] true | false //WARNING disables vanilla elytra and Requires mod to be installed on client and server. (changing setting needs game restart)"
+				"^-Allow gliding without an elytra [false] true | false //WARNING disables vanilla elytra and Requires mod to be installed on client and server. (changing setting needs game restart)",
+				"^-Enable PlayerAbilityLib compatibility [true] true | false //change if you need survival flight to disable other mods flight implementations"
 				);
 		public static final String scriptHelp = "Lines are ignored.\nAvailable operations:\n"+ ScriptParser.getHelp()+
 				"\nAvailable Conditions:\n"+

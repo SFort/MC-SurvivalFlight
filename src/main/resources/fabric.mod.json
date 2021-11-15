@@ -21,7 +21,9 @@
   "entrypoints": {
     "main": ["tf.ssf.sfort.survivalflight.Config"],
     "modmenu": [ "tf.ssf.sfort.survivalflight.ModMenu" ],
-    "client": ["tf.ssf.sfort.survivalflight.CommandsClient"]
+    "client": [
+      "tf.ssf.sfort.survivalflight.InitClient"
+    ]
   },
   "depends": {
     "fscript": "*",

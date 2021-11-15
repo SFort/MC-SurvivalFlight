@@ -9,5 +9,6 @@ public interface SPEA {
     void bf$tickBeacon();
     boolean bf$tickTimed();
     boolean bf$isSurvivalLike();
-    boolean bf$hasBeacon();
+    boolean bf$hasBeaconTicks();
+    boolean bf$hasBeaconPing();
 }
