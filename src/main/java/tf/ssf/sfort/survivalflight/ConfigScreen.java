@@ -1,16 +1,10 @@
 package tf.ssf.sfort.survivalflight;
 
-import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.LiteralText;
 import tf.ssf.sfort.script.ScriptingScreen;
-import tf.ssf.sfort.survivalflight.mixin.MixinConfig;
-
-import java.awt.*;
-import java.util.Iterator;
 
 public class ConfigScreen extends Screen {
     final Screen screen;

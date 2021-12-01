@@ -4,7 +4,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import tf.ssf.sfort.script.Default;
 import tf.ssf.sfort.script.Help;
 import tf.ssf.sfort.script.PredicateProvider;
-import tf.ssf.sfort.survivalflight.mixin.MixinConfig;
 
 import java.util.*;
 import java.util.function.Predicate;
