@@ -23,10 +23,13 @@
     "modmenu": [ "tf.ssf.sfort.survivalflight.ModMenu" ],
     "client": [
       "tf.ssf.sfort.survivalflight.InitClient"
+    ],
+    "fscript": [
+      "tf.ssf.sfort.survivalflight.InitFScript"
     ]
   },
   "depends": {
-    "fscript": ">=1.1.0",
+    "fscript": ">=2.0.0",
     "fabricloader": "*",
     "minecraft": "*"
   }

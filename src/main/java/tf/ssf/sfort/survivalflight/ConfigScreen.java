@@ -4,6 +4,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.LiteralText;
+import tf.ssf.sfort.script.Default;
 import tf.ssf.sfort.script.ScriptingScreen;
 
 public class ConfigScreen extends Screen {
@@ -21,7 +22,7 @@ public class ConfigScreen extends Screen {
                             this,
                             new ScriptingScreen.Script(
                                     "§bSurvival Flight",
-                                    new FlightScript(),
+                                    Default.SERVER_PLAYER_ENTITY,
                                     Config::writeFly,
                                     null,
                                     Config::readFly,
@@ -36,7 +37,7 @@ public class ConfigScreen extends Screen {
                             this,
                             new ScriptingScreen.Script(
                                     "§bSurvival Flight - Elytra Flight",
-                                    new FlightScript(),
+                                    Default.SERVER_PLAYER_ENTITY,
                                     Config::writeElytra,
                                     null,
                                     Config::readElytra,
@@ -51,7 +52,7 @@ public class ConfigScreen extends Screen {
                             this,
                             new ScriptingScreen.Script(
                                     "§bSurvival Flight - Firework Boost",
-                                    new FlightScript(),
+                                    Default.SERVER_PLAYER_ENTITY,
                                     Config::writeElytraBoost,
                                     null,
                                     Config::readElytraBoost,

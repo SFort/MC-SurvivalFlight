@@ -11,6 +11,7 @@
 	import org.apache.logging.log4j.Level;
 	import org.apache.logging.log4j.LogManager;
 	import org.apache.logging.log4j.Logger;
+	import tf.ssf.sfort.script.Default;
 	import tf.ssf.sfort.script.Help;
 	import tf.ssf.sfort.script.ScriptParser;
 
@@ -142,6 +143,7 @@
 				for (int i = 0; i<defaultDesc.size();++i)
 					ls[i*2+1]= defaultDesc.get(i);
 				int i = 0;
+				//TODO add commands to generate these
 				boolean generateScriptHelp = false;
 				boolean generateLudicrousHelp = false;
 				try {
@@ -235,7 +237,7 @@
 				if(scriptFile.createNewFile()) {
 					FileUtils.writeStringToFile(scriptFile, "false", StandardCharsets.UTF_8);
 				}
-				Predicate<ServerPlayerEntity> out = new ScriptParser<>(new FlightScript()).parse(Files.readString(scriptFile.toPath()).replaceAll("\\s", ""));
+				Predicate<ServerPlayerEntity> out = Default.SERVER_PLAYER_ENTITY.parse(Files.readString(scriptFile.toPath()).replaceAll("\\s", ""));
 				if (out != null)
 					canFly = canFly.and(out);
 				LOGGER.log(Level.INFO, MOD_ID + " successfully loaded flight script file");
@@ -246,7 +248,7 @@
 				if(elytraScriptFile.createNewFile()) {
 					FileUtils.writeStringToFile(elytraScriptFile, "true", StandardCharsets.UTF_8);
 				}
-				Predicate<ServerPlayerEntity> out = new ScriptParser<>(new FlightScript()).parse(Files.readString(elytraScriptFile.toPath()).replaceAll("\\s", ""));
+				Predicate<ServerPlayerEntity> out = Default.SERVER_PLAYER_ENTITY.parse(Files.readString(elytraScriptFile.toPath()).replaceAll("\\s", ""));
 				canElytraFly = out;
 				LOGGER.log(Level.INFO, MOD_ID + " successfully loaded elytra script file");
 			} catch (Exception e) {
@@ -256,7 +258,7 @@
 				if(boostScriptFile.createNewFile()) {
 					FileUtils.writeStringToFile(boostScriptFile, "true", StandardCharsets.UTF_8);
 				}
-				Predicate<ServerPlayerEntity> out = new ScriptParser<>(new FlightScript()).parse(Files.readString(boostScriptFile.toPath()).replaceAll("\\s", ""));
+				Predicate<ServerPlayerEntity> out = Default.SERVER_PLAYER_ENTITY.parse(Files.readString(boostScriptFile.toPath()).replaceAll("\\s", ""));
 				canElytraBoost = out;
 				LOGGER.log(Level.INFO, MOD_ID + " successfully loaded elytra boost script file");
 			} catch (Exception e) {
@@ -312,7 +314,7 @@
 				Available operations:
 				"""+ ScriptParser.getHelp()+
 				"\nAvailable Conditions:\n"+
-				Help.formatHelp(new FlightScript(), FlightScript.exclude);
+				Help.formatHelp(Default.SERVER_PLAYER_ENTITY, null);
 				;
 
 		private static Predicate<ServerPlayerEntity> bit_and(Predicate<ServerPlayerEntity> p1, Predicate<ServerPlayerEntity> p2){

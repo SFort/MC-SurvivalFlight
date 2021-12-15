@@ -26,7 +26,9 @@ public class Beacon {
     private static void onApplyPlayerEffects(World world, BlockPos blockPos, int i, @Nullable StatusEffect statusEffect, @Nullable StatusEffect statusEffect2, CallbackInfo info, double d, int y, int duration, Box bb, List<PlayerEntity> list) {
         if (i>= Config.beaconLevel)
         for (PlayerEntity player : list)
-            if (player instanceof ServerPlayerEntity)
+            if (player instanceof ServerPlayerEntity) {
                 ((SPEA) player).bf$beaconPing(bb, duration);
+                System.out.println(((SPEA)player).bf$hasBeaconPing());
+            }
     }
 }

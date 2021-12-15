@@ -43,7 +43,7 @@ public abstract class Player extends PlayerEntity implements SPEA {
 
 	@Override
 	public void bf$beaconPing(Box box, int duration) {
-		if (bf$ping == null || box.getCenter().distanceTo(this.getPos()) < bf$ping.getCenter().distanceTo(this.getPos()))
+		if (bf$ping == null || !bf$ping.contains(this.getPos()) || box.getCenter().distanceTo(this.getPos()) < bf$ping.getCenter().distanceTo(this.getPos()))
 			bf$ping = box;
 		bf$ticksLeft = duration;
 	}
@@ -58,7 +58,7 @@ public abstract class Player extends PlayerEntity implements SPEA {
 	}
 	@Override
 	public boolean bf$hasBeaconPing(){
-		return bf$ping != null && bf$ping.contains(getPos());
+		return bf$ping != null && bf$ping.contains(this.getPos());
 	}
 	@Override
 	public void bf$fly() {
