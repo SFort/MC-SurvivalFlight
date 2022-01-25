@@ -1,5 +1,6 @@
 	package tf.ssf.sfort.survivalflight;
 
+	import net.fabricmc.api.EnvType;
 	import net.fabricmc.api.ModInitializer;
 	import net.fabricmc.loader.api.FabricLoader;
 	import net.minecraft.entity.effect.StatusEffect;
@@ -14,6 +15,7 @@
 	import tf.ssf.sfort.script.Default;
 	import tf.ssf.sfort.script.Help;
 	import tf.ssf.sfort.script.ScriptParser;
+	import tf.ssf.sfort.survivalflight.mixin.MixinConfig;
 
 	import java.io.File;
 	import java.nio.charset.StandardCharsets;
@@ -39,7 +41,6 @@
         private static boolean registerCommands = true;
 		private static boolean registerPlayerAbilityLib = true;
 		public static boolean keepPlayerAbilityLib = true;
-		public static boolean elytraFreeFallFly = false;
 		public static final Predicate<ServerPlayerEntity> canFly_init = player -> ((SPEA)player).bf$isSurvivalLike();
 		public static final Consumer<ServerPlayerEntity> tick_init = splayer-> {
 			SPEA player = (SPEA) splayer;
@@ -116,7 +117,12 @@
 		public void onInitialize() {
         	reload_settings();
 			if (FabricLoader.getInstance().isModLoaded("fabric-command-api-v1") && registerCommands){
+				if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT)
+					Commands.registerClient();
 				Commands.register();
+			}
+			if (MixinConfig.elytraFapi){
+				FAPI.register();
 			}
 		}
 		public static void borkedPlayerAbilityLib(){
@@ -156,7 +162,13 @@
 					}catch (Exception e){ LOGGER.log(Level.WARN, MOD_ID +" #0\n"+e); }
 				if (generateLudicrousHelp)
 					try {
-						Files.writeString(scriptHelpFile.toPath(), Help.Parameter.intoString(), StandardOpenOption.APPEND);
+						StringBuilder out = new StringBuilder();
+						for (String h : Default.PARAMETERS.map.keySet()) {
+							out.append("\n\n").append(h).append("\n")
+									.append("======================================================================")
+									.append(":\n").append(String.join("\n", Default.PARAMETERS.getParameters(h)));
+						}
+						Files.writeString(scriptHelpFile.toPath(), out.toString(), StandardOpenOption.APPEND);
 					}catch (Exception e){ LOGGER.log(Level.WARN, MOD_ID +" #0\n"+e); }
 				ls[i]=generateLudicrousHelp? "ludicrous" :String.valueOf(generateScriptHelp);
 				i+=2;
@@ -214,11 +226,11 @@
 					exitElytra = exitElytra.andThen((player) -> player.addStatusEffect(new StatusEffectInstance(exit_effect, duration)));
 				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
 				i+=2;
-
 				try{
-					elytraFreeFallFly = ls[i].contains("true");
+					if (ls[i].contains("true")) ls[i] = "true";
+					else if (ls[i].contains("fapi")) ls[i] = "fapi";
+					else ls[i] = "false";
 				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
-				ls[i] = String.valueOf(elytraFreeFallFly);
 				i+=2;
 
 				try{
@@ -306,7 +318,7 @@
 				"^-Flight duration in ticks before cool-down starts [0]",
 				"^-Flight cool-down in ticks [0]",
 				"^-Apply effect to player on elytra mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
-				"^-Allow gliding without an elytra [false] true | false //WARNING disables vanilla elytra and Requires mod to be installed on client and server. (changing setting needs game restart)",
+				"^-Allow gliding without an elytra [false] true | false | fapi //WARNING disables vanilla elytra and Requires mod to be installed on client and server. (changing setting needs game restart).",
 				"^-Enable PlayerAbilityLib compatibility [true] true | false //change if you need survival flight to disable other mods flight implementations"
 				);
 		public static final String scriptHelp = """

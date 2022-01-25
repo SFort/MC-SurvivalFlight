@@ -17,6 +17,8 @@
 	public class MixinConfig implements IMixinConfigPlugin {
 
 		public static boolean elytraFreeFallFly = false;
+		public static boolean elytraFapi = false;
+		public static boolean elytraFapiExists = false;
 
 		public static File confFile = new File(FabricLoader.getInstance().getConfigDir().resolve("SurvivalFlight").toFile(), "general.conf");
 
@@ -24,10 +26,21 @@
 		public void onLoad(String mixinPackage) {
 			try {
 				try{
+					try{
+						Class.forName("net.fabricmc.fabric.api.entity.event.v1.EntityElytraEvents", false, this.getClass().getClassLoader());
+						elytraFapiExists = true;
+					}catch (Exception ignore){}
+
 					if (!confFile.isFile()) return;
 					List<String> la = Files.readAllLines(confFile.toPath());
-					if (la.size()>18)
+					//TODO add fapi hook as an option
+
+					if (la.size()>18){
 						elytraFreeFallFly = la.get(18).contains("true");
+						if (la.get(18).contains("fapi") && elytraFapiExists){
+							elytraFapi = true;
+						}
+					}
 				}catch (Exception e){ LOGGER.log(Level.INFO, MOD_ID +" #Mixin18\n"+e); }
 			} catch(Exception e) {
 				LOGGER.log(Level.ERROR, MOD_ID +" failed to load config file for Mixin, using defaults\n"+e);
@@ -44,7 +57,8 @@
 		public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
 			return switch (mixinClassName) {
 				case mixin_dir + ".Elytra" -> !elytraFreeFallFly;
-				case mixin_dir + ".FallFly", mixin_dir + ".FallFlyClient", mixin_dir + ".FallFlyTick" -> elytraFreeFallFly;
+				case mixin_dir + ".FallFlyClient" -> elytraFreeFallFly && !elytraFapiExists;
+				case mixin_dir + ".FallFly", mixin_dir + ".FallFlyTick" -> elytraFreeFallFly && !elytraFapi;
 				default -> true;
 			};
 		}

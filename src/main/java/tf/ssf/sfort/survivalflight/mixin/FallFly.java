@@ -21,13 +21,12 @@ public abstract class FallFly extends LivingEntity {
         super(entityType, world);
     }
 
-    @Inject(at=@At(value="INVOKE", target="Lnet/minecraft/entity/player/PlayerEntity;getEquippedStack(Lnet/minecraft/entity/EquipmentSlot;)Lnet/minecraft/item/ItemStack;"),
+    @Inject(at=@At(value="FIELD", target="Lnet/minecraft/entity/effect/StatusEffects;LEVITATION:Lnet/minecraft/entity/effect/StatusEffect;"),
             method="checkFallFlying()Z", cancellable=true)
     private void scriptCheck(CallbackInfoReturnable<Boolean> cir) {
-        boolean bl = ((Object)this) instanceof ServerPlayerEntity;
-        if (Config.canElytraFly != null && (!bl || Config.canElytraFly.test((ServerPlayerEntity) (Object) this))) {
-            if (bl) startFallFlying();
-            cir.setReturnValue(true);
+        cir.setReturnValue(true);
+        if (Config.canElytraFly != null && ((Object)this) instanceof ServerPlayerEntity && Config.canElytraFly.test((ServerPlayerEntity) (Object) this)) {
+            startFallFlying();
         }
     }
 }

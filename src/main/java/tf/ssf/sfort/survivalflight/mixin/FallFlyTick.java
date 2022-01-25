@@ -28,7 +28,7 @@ public abstract class FallFlyTick extends Entity {
 
     @Inject(at=@At("HEAD"), method="tickFallFlying()V", cancellable=true)
     private void scriptCheck(CallbackInfo ci) {
-        if (((Object)this) instanceof ServerPlayerEntity && ((SPEA)this).bf$isSurvivalLike() && Config.canElytraFly != null) {
+        if (((Object)this) instanceof ServerPlayerEntity && Config.canElytraFly != null) {
             boolean bl = this.getFlag(7);
             if (bl && !this.onGround && !this.hasVehicle() && !this.hasStatusEffect(StatusEffects.LEVITATION) && Config.canElytraFly.test((ServerPlayerEntity) (Object) this)){
                 if ((this.roll + 1) % 10 == 0)
