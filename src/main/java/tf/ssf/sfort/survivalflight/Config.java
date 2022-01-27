@@ -118,7 +118,7 @@
         	reload_settings();
 			if (FabricLoader.getInstance().isModLoaded("fabric-command-api-v1") && registerCommands){
 				if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT)
-					Commands.registerClient();
+					CommandsClient.registerClient();
 				Commands.register();
 			}
 			if (MixinConfig.elytraFapi){
