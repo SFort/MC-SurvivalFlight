@@ -38,7 +38,8 @@
 		public static int beaconLevel = 0;
 		public static int ticksPerXP = 0;
 		public static boolean hasBeaconCondition = false;
-        private static boolean registerCommands = true;
+		public static boolean hasConduitCondition = false;
+		private static boolean registerCommands = true;
 		private static boolean registerPlayerAbilityLib = true;
 		public static boolean keepPlayerAbilityLib = true;
 		public static final Predicate<ServerPlayerEntity> canFly_init = player -> ((SPEA)player).bf$isSurvivalLike();
@@ -305,6 +306,9 @@
 			}
 			if(hasBeaconCondition) {
 				tick = ((Consumer<ServerPlayerEntity>)p -> ((SPEA) p).bf$tickBeacon()).andThen(tick);
+			}
+			if(hasConduitCondition) {
+				tick = ((Consumer<ServerPlayerEntity>)p -> ((SPEA) p).bf$tickConduit()).andThen(tick);
 			}
 		}
 

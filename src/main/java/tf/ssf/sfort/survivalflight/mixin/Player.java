@@ -32,6 +32,9 @@ public abstract class Player extends PlayerEntity implements SPEA {
 	protected int bf$ticksXp = 0;
 	protected int bf$timed = 0;
 	protected Box bf$ping;
+	protected Box bf$cping;
+	protected int bf$cticksLeft = 0;
+
 	@Inject(method = "tick", at = @At("HEAD"))
 	private void onTick(CallbackInfo info) {
 		Config.tick.accept((ServerPlayerEntity)(Object)this);
@@ -49,6 +52,13 @@ public abstract class Player extends PlayerEntity implements SPEA {
 	}
 
 	@Override
+	public void bf$conduitPing(Box box) {
+		if (bf$cping == null || !bf$cping.contains(this.getPos()) || box.getCenter().distanceTo(this.getPos()) < bf$cping.getCenter().distanceTo(this.getPos()))
+			bf$cping = box;
+		bf$cticksLeft = 260;
+	}
+
+	@Override
 	public boolean bf$isSurvivalLike() {
 		return this.interactionManager.getGameMode().isSurvivalLike();
 	}
@@ -59,6 +69,14 @@ public abstract class Player extends PlayerEntity implements SPEA {
 	@Override
 	public boolean bf$hasBeaconPing(){
 		return bf$ping != null && bf$ping.contains(this.getPos());
+	}
+	@Override
+	public boolean bf$hasConduitTicks(){
+		return bf$cticksLeft>0;
+	}
+	@Override
+	public boolean bf$hasConduitPing(){
+		return bf$cping != null && bf$cping.contains(this.getPos());
 	}
 	@Override
 	public void bf$fly() {
@@ -89,6 +107,10 @@ public abstract class Player extends PlayerEntity implements SPEA {
 	@Override
 	public void bf$tickBeacon(){
 		if (bf$ticksLeft>0)bf$ticksLeft--;
+	}
+	@Override
+	public void bf$tickConduit(){
+		if (bf$cticksLeft>0)bf$cticksLeft--;
 	}
 	@Override
 	public boolean bf$tickTimed(){
