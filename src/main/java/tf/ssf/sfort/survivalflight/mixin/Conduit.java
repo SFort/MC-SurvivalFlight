@@ -25,6 +25,6 @@ public class Conduit {
         if (Config.hasConduitCondition)
         for (PlayerEntity player : list)
             if (player instanceof ServerPlayerEntity)
-                ((SPEA) player).bf$conduitPing(box);
+                ((SPEA) player).bf$conduitPing(pos, j);
     }
 }

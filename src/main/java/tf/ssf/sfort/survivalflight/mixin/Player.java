@@ -1,6 +1,7 @@
 package tf.ssf.sfort.survivalflight.mixin;
 
 import com.mojang.authlib.GameProfile;
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.PlayerAbilities;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -32,7 +33,8 @@ public abstract class Player extends PlayerEntity implements SPEA {
 	protected int bf$ticksXp = 0;
 	protected int bf$timed = 0;
 	protected Box bf$ping;
-	protected Box bf$cping;
+	protected BlockPos bf$cping;
+	protected int bf$cdist = 0;
 	protected int bf$cticksLeft = 0;
 
 	@Inject(method = "tick", at = @At("HEAD"))
@@ -52,9 +54,11 @@ public abstract class Player extends PlayerEntity implements SPEA {
 	}
 
 	@Override
-	public void bf$conduitPing(Box box) {
-		if (bf$cping == null || !bf$cping.contains(this.getPos()) || box.getCenter().distanceTo(this.getPos()) < bf$cping.getCenter().distanceTo(this.getPos()))
+	public void bf$conduitPing(BlockPos box, int dist) {
+		if (bf$cping == null || !bf$cping.isWithinDistance(this.getBlockPos(), dist) || dist-box.getSquaredDistance(this.getBlockPos()) > bf$cdist-bf$cping.getSquaredDistance(this.getBlockPos())) {
+			bf$cdist = dist;
 			bf$cping = box;
+		}
 		bf$cticksLeft = 260;
 	}
 
@@ -76,7 +80,7 @@ public abstract class Player extends PlayerEntity implements SPEA {
 	}
 	@Override
 	public boolean bf$hasConduitPing(){
-		return bf$cping != null && bf$cping.contains(this.getPos());
+		return bf$cping != null && bf$cping.isWithinDistance(this.getPos(), bf$cdist);
 	}
 	@Override
 	public void bf$fly() {
