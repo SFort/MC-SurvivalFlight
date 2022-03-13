@@ -42,6 +42,7 @@ processResources {
 		expand "version": project.version
 	}
 }
+
 tasks.withType(JavaCompile) {
 	options.encoding = "UTF-8"
 }

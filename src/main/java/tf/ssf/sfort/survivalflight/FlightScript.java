@@ -1,64 +1,50 @@
 package tf.ssf.sfort.survivalflight;
 
 import net.minecraft.server.network.ServerPlayerEntity;
-import tf.ssf.sfort.script.Default;
 import tf.ssf.sfort.script.Help;
 import tf.ssf.sfort.script.PredicateProvider;
-import tf.ssf.sfort.survivalflight.mixin.MixinConfig;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 public class FlightScript implements PredicateProvider<ServerPlayerEntity>, Help {
-    public static Set<String> exclude = new HashSet<>();
-    public static final Map<String, String> help = new HashMap<>();
+    public static final FlightScript INSTANCE = new FlightScript();
+    public final Map<String, String> help = new HashMap<>();
 
-
-    public Predicate<ServerPlayerEntity> getPredicate(String in, String val, Set<Class<?>> dejavu){
-        if(exclude.contains(in)) return null;
-        return Default.SERVER_PLAYER_ENTITY.getPredicate(in, val, dejavu);
-    }
-
-    public Predicate<ServerPlayerEntity> getPredicate(String in, Set<Class<?>> dejavu){
-        if(exclude.contains(in)) return null;
+    public Predicate<ServerPlayerEntity> getPredicate(String in, Set<String> dejavu){
         switch (in) {
-            case "beacon" : {
+            case "sf_beacon": case "beacon" : {
                 Config.hasBeaconCondition = true;
-                return player -> ((SPEA) player).bf$hasBeaconPing() && ((SPEA) player).bf$hasBeaconTicks();
+                return player -> (((SPEA) player).bf$hasBeaconTicks() && ((SPEA)player).bf$hasBeaconPing());
             }
-            case "beacon_delayed" : {
+            case "sf_beacon_delayed": case "beacon_delayed" : {
                 Config.hasBeaconCondition = true;
                 return player -> (((SPEA) player).bf$hasBeaconTicks());
             }
+            case "sf_conduit": case "conduit" : {
+                Config.hasConduitCondition = true;
+                return player -> (((SPEA) player).bf$hasConduitTicks() && ((SPEA)player).bf$hasConduitPing());
+            }
+            case "sf_conduit_delayed": case "conduit_delayed" : {
+                Config.hasConduitCondition = true;
+                return player -> (((SPEA) player).bf$hasConduitTicks());
+            }
             case "false": return player -> false;
             case "true": return player -> true;
-            default: return Default.SERVER_PLAYER_ENTITY.getPredicate(in, dejavu);
+            default: return null;
         }
     }
-    public Predicate<ServerPlayerEntity> getEmbed(String in, String script, Set<Class<?>> dejavu){
-        return Default.SERVER_PLAYER_ENTITY.getEmbed(in, script, dejavu);
-    }
-    public Predicate<ServerPlayerEntity> getEmbed(String in, String val, String script, Set<Class<?>> dejavu){
-        return Default.SERVER_PLAYER_ENTITY.getEmbed(in, val, script, dejavu);
-    }
+
     public Map<String, String> getHelp(){
         return help;
     }
-    public List<Help> getImported(){
-        return new LinkedList<>(Collections.singleton(Default.SERVER_PLAYER_ENTITY));
-    }
-    static {
-        exclude.add("is_creative");
-        exclude.add("climbing");
-        exclude.add("height");
-        exclude.add("fall_flying");
-        exclude.add("swimming");
-        exclude.add("width");
-        exclude.add("has_vehicle");
-        exclude.add("on_ground");
-
-        help.put("beacon","Require beacon");
-        help.put("beacon_delayed","Require beacon, but it's still valid if outside of range as long as effects apply");
+    public FlightScript() {
+        help.put("sf_beacon beacon","Require active beacon");
+        help.put("sf_beacon_delayed beacon_delayed","Require active beacon, but it's still valid if outside of range as long as effects apply");
+        help.put("sf_conduit conduit","Require active conduit");
+        help.put("sf_conduit_delayed conduit_delayed","Require active conduit, but it's still valid if outside of range as long as effects would apply");
         help.put("false","");
         help.put("true","");
     }

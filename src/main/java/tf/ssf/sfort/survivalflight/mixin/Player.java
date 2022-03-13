@@ -1,6 +1,8 @@
 package tf.ssf.sfort.survivalflight.mixin;
 
 import com.mojang.authlib.GameProfile;
+import net.minecraft.block.Block;
+import net.minecraft.entity.player.PlayerAbilities;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -31,6 +33,10 @@ public abstract class Player extends PlayerEntity implements SPEA {
 	protected int bf$ticksXp = 0;
 	protected int bf$timed = 0;
 	protected Box bf$ping;
+	protected BlockPos bf$cping;
+	protected int bf$cdist = 0;
+	protected int bf$cticksLeft = 0;
+
 	@Inject(method = "tick", at = @At("HEAD"))
 	private void onTick(CallbackInfo info) {
 		Config.tick.accept((ServerPlayerEntity)(Object)this);
@@ -42,9 +48,18 @@ public abstract class Player extends PlayerEntity implements SPEA {
 
 	@Override
 	public void bf$beaconPing(Box box, int duration) {
-		if (bf$ping == null || box.getCenter().distanceTo(this.getPos()) < bf$ping.getCenter().distanceTo(this.getPos()))
+		if (bf$ping == null || !bf$ping.contains(this.getPos()) || box.getCenter().distanceTo(this.getPos()) < bf$ping.getCenter().distanceTo(this.getPos()))
 			bf$ping = box;
 		bf$ticksLeft = duration;
+	}
+
+	@Override
+	public void bf$conduitPing(BlockPos box, int dist) {
+		if (bf$cping == null || !bf$cping.isWithinDistance(this.getBlockPos(), dist) || dist-box.getSquaredDistance(this.getBlockPos()) > bf$cdist-bf$cping.getSquaredDistance(this.getBlockPos())) {
+			bf$cdist = dist;
+			bf$cping = box;
+		}
+		bf$cticksLeft = 260;
 	}
 
 	@Override
@@ -57,7 +72,15 @@ public abstract class Player extends PlayerEntity implements SPEA {
 	}
 	@Override
 	public boolean bf$hasBeaconPing(){
-		return bf$ping != null && bf$ping.contains(getPos());
+		return bf$ping != null && bf$ping.contains(this.getPos());
+	}
+	@Override
+	public boolean bf$hasConduitTicks(){
+		return bf$cticksLeft>0;
+	}
+	@Override
+	public boolean bf$hasConduitPing(){
+		return bf$cping != null && bf$cping.isWithinDistance(this.getPos(), bf$cdist);
 	}
 	@Override
 	public void bf$fly() {
@@ -87,6 +110,10 @@ public abstract class Player extends PlayerEntity implements SPEA {
 	@Override
 	public void bf$tickBeacon(){
 		if (bf$ticksLeft>0)bf$ticksLeft--;
+	}
+	@Override
+	public void bf$tickConduit(){
+		if (bf$cticksLeft>0)bf$cticksLeft--;
 	}
 	@Override
 	public boolean bf$tickTimed(){

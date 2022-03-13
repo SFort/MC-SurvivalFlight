@@ -1,5 +1,6 @@
 	package tf.ssf.sfort.survivalflight;
 
+	import net.fabricmc.api.EnvType;
 	import net.fabricmc.api.ModInitializer;
 	import net.fabricmc.loader.api.FabricLoader;
 	import net.minecraft.entity.effect.StatusEffect;
@@ -11,6 +12,7 @@
 	import org.apache.logging.log4j.Level;
 	import org.apache.logging.log4j.LogManager;
 	import org.apache.logging.log4j.Logger;
+	import tf.ssf.sfort.script.Default;
 	import tf.ssf.sfort.script.Help;
 	import tf.ssf.sfort.script.ScriptParser;
 
@@ -36,10 +38,10 @@
 		public static int beaconLevel = 0;
 		public static int ticksPerXP = 0;
 		public static boolean hasBeaconCondition = false;
+		public static boolean hasConduitCondition = false;
 		private static boolean registerCommands = true;
 		private static boolean registerPlayerAbilityLib = true;
 		public static boolean keepPlayerAbilityLib = true;
-		public static boolean elytraFreeFallFly = false;
 		public static final Predicate<ServerPlayerEntity> canFly_init = player -> ((SPEA)player).bf$isSurvivalLike();
 		public static final Consumer<ServerPlayerEntity> tick_init = splayer-> {
 			SPEA player = (SPEA) splayer;
@@ -116,6 +118,8 @@
 		public void onInitialize() {
 			reload_settings();
 			if (FabricLoader.getInstance().isModLoaded("fabric-command-api-v1") && registerCommands){
+				if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT)
+					CommandsClient.registerClient();
 				Commands.register();
 			}
 		}
@@ -155,7 +159,13 @@
 					}catch (Exception e){ LOGGER.log(Level.WARN, MOD_ID +" #0\n"+e); }
 				if (generateLudicrousHelp)
 					try {
-						Files.write(scriptHelpFile.toPath(), Arrays.asList(Help.Parameter.intoString().split("\n")), StandardOpenOption.APPEND);
+						StringBuilder out = new StringBuilder();
+						for (String h : Default.PARAMETERS.map.keySet()) {
+							out.append("\n\n").append(h).append("\n")
+									.append("======================================================================")
+									.append(":\n").append(String.join("\n", Default.PARAMETERS.getParameters(h)));
+						}
+						Files.write(scriptHelpFile.toPath(), Arrays.asList(out.toString().split("\n")), StandardOpenOption.APPEND);
 					}catch (Exception e){ LOGGER.log(Level.WARN, MOD_ID +" #0\n"+e); }
 				ls[i]=generateLudicrousHelp? "ludicrous" :String.valueOf(generateScriptHelp);
 				i+=2;
@@ -215,9 +225,9 @@
 				i+=2;
 
 				try{
-					elytraFreeFallFly = ls[i].contains("true");
+					if (ls[i].contains("true")) ls[i] = "true";
+					else ls[i] = "false";
 				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
-				ls[i] = String.valueOf(elytraFreeFallFly);
 				i+=2;
 
 				try{
@@ -236,7 +246,7 @@
 				if(scriptFile.createNewFile()) {
 					FileUtils.writeStringToFile(scriptFile, "false", StandardCharsets.UTF_8);
 				}
-				Predicate<ServerPlayerEntity> out = new ScriptParser<>(new FlightScript()).parse(Files.readAllLines(scriptFile.toPath()).stream().collect(Collectors.joining()).replaceAll("\\s", ""));
+				Predicate<ServerPlayerEntity> out = Default.SERVER_PLAYER_ENTITY.parse(String.join("", Files.readAllLines(scriptFile.toPath())).replaceAll("\\s", ""));
 				if (out != null)
 					canFly = canFly.and(out);
 				LOGGER.log(Level.INFO, MOD_ID + " successfully loaded flight script file");
@@ -247,7 +257,7 @@
 				if(elytraScriptFile.createNewFile()) {
 					FileUtils.writeStringToFile(elytraScriptFile, "true", StandardCharsets.UTF_8);
 				}
-				Predicate<ServerPlayerEntity> out = new ScriptParser<>(new FlightScript()).parse(Files.readAllLines(elytraScriptFile.toPath()).stream().collect(Collectors.joining()).replaceAll("\\s", ""));
+				Predicate<ServerPlayerEntity> out = Default.SERVER_PLAYER_ENTITY.parse(String.join("", Files.readAllLines(elytraScriptFile.toPath())).replaceAll("\\s", ""));
 				canElytraFly = out;
 				LOGGER.log(Level.INFO, MOD_ID + " successfully loaded elytra script file");
 			} catch (Exception e) {
@@ -257,7 +267,7 @@
 				if(boostScriptFile.createNewFile()) {
 					FileUtils.writeStringToFile(boostScriptFile, "true", StandardCharsets.UTF_8);
 				}
-				Predicate<ServerPlayerEntity> out = new ScriptParser<>(new FlightScript()).parse(Files.readAllLines(boostScriptFile.toPath()).stream().collect(Collectors.joining()).replaceAll("\\s", ""));
+				Predicate<ServerPlayerEntity> out = Default.SERVER_PLAYER_ENTITY.parse(String.join("", Files.readAllLines(boostScriptFile.toPath())).replaceAll("\\s", ""));
 				canElytraBoost = out;
 				LOGGER.log(Level.INFO, MOD_ID + " successfully loaded elytra boost script file");
 			} catch (Exception e) {
@@ -265,6 +275,7 @@
 			}
 			if(duration != 0 || cooldown != 0)
 				canFly = bit_and(canFly, player -> ((SPEA)player).bf$tickTimed());
+
 
 			//TODO probably merge into canFly
 			if (ticksPerXP != 0 || xpPerTick != 0){
@@ -292,6 +303,9 @@
 			if(hasBeaconCondition) {
 				tick = ((Consumer<ServerPlayerEntity>)p -> ((SPEA) p).bf$tickBeacon()).andThen(tick);
 			}
+			if(hasConduitCondition) {
+				tick = ((Consumer<ServerPlayerEntity>)p -> ((SPEA) p).bf$tickConduit()).andThen(tick);
+			}
 		}
 
 		public static final List<String> defaultDesc = Arrays.asList(
@@ -304,12 +318,13 @@
 				"^-Flight duration in ticks before cool-down starts [0]",
 				"^-Flight cool-down in ticks [0]",
 				"^-Apply effect to player on elytra mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
-				"^-Allow gliding without an elytra [false] true | false //WARNING disables vanilla elytra and Requires mod to be installed on client and server. (changing setting needs game restart)",
+				"^-Allow gliding without an elytra [false] true | false //WARNING disables vanilla elytra and Requires mod to be installed on client and server. (changing setting needs game restart).",
 				"^-Enable PlayerAbilityLib compatibility [true] true | false //change if you need survival flight to disable other mods flight implementations"
 				);
-		public static final String scriptHelp = "Lines are ignored.\nAvailable operations:\n"+ ScriptParser.getHelp()+
+		public static final String scriptHelp = "Lines are ignored.\nAvailable operations:"+
+				ScriptParser.getHelp()+
 				"\nAvailable Conditions:\n"+
-				Help.formatHelp(new FlightScript(), FlightScript.exclude);
+				Help.formatHelp(Default.SERVER_PLAYER_ENTITY, null);
 				;
 
 		private static Predicate<ServerPlayerEntity> bit_and(Predicate<ServerPlayerEntity> p1, Predicate<ServerPlayerEntity> p2){

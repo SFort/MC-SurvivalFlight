@@ -13,7 +13,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import tf.ssf.sfort.survivalflight.Config;
-import tf.ssf.sfort.survivalflight.SPEA;
 
 @Mixin(LivingEntity.class)
 public abstract class FallFlyTick extends Entity {
@@ -27,7 +26,7 @@ public abstract class FallFlyTick extends Entity {
 
     @Inject(at=@At("HEAD"), method="tickFallFlying()V", cancellable=true)
     private void scriptCheck(CallbackInfo ci) {
-        if (((Object)this) instanceof ServerPlayerEntity && ((SPEA)this).bf$isSurvivalLike() && Config.canElytraFly != null) {
+        if (((Object)this) instanceof ServerPlayerEntity && Config.canElytraFly != null) {
             boolean bl = this.getFlag(7);
             if (bl && !this.onGround && !this.hasVehicle() && !this.hasStatusEffect(StatusEffects.LEVITATION) && Config.canElytraFly.test((ServerPlayerEntity) (Object) this)){
                 //TODO
