@@ -3,11 +3,13 @@
 	import net.fabricmc.api.EnvType;
 	import net.fabricmc.api.ModInitializer;
 	import net.fabricmc.loader.api.FabricLoader;
+	import net.minecraft.entity.damage.DamageSource;
 	import net.minecraft.entity.effect.StatusEffect;
 	import net.minecraft.entity.effect.StatusEffectInstance;
 	import net.minecraft.server.network.ServerPlayerEntity;
 	import net.minecraft.util.Identifier;
 	import net.minecraft.util.registry.SimpleRegistry;
+	import net.minecraft.world.GameMode;
 	import org.apache.commons.io.FileUtils;
 	import org.apache.logging.log4j.Level;
 	import org.apache.logging.log4j.LogManager;
@@ -15,6 +17,7 @@
 	import tf.ssf.sfort.script.Default;
 	import tf.ssf.sfort.script.Help;
 	import tf.ssf.sfort.script.ScriptParser;
+	import tf.ssf.sfort.script.StitchedPredicateProvider;
 	import tf.ssf.sfort.survivalflight.mixin.MixinConfig;
 
 	import java.io.File;

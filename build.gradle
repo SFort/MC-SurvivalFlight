@@ -1,9 +1,9 @@
 plugins {
-	id 'fabric-loom' version '0.10-SNAPSHOT'
+	id 'fabric-loom' version '0.12-SNAPSHOT'
 }
 
-sourceCompatibility = JavaVersion.VERSION_16
-targetCompatibility = JavaVersion.VERSION_16
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
 archivesBaseName = project.archives_base_name
 version = project.mod_version
@@ -25,13 +25,13 @@ dependencies {
 	modImplementation ("tf.ssf.sfort:fscript:${project.fscript_version}"){
 		transitive = false
 	}
-	modImplementation fabricApi.module("fabric-command-api-v1", "${project.fabric_version}")
+	modImplementation fabricApi.module("fabric-command-api-v2", "${project.fabric_version}")
 	modImplementation fabricApi.module("fabric-entity-events-v1", "${project.fabric_version}")
 
 	//ModMenu
 	modImplementation fabricApi.module("fabric-resource-loader-v0", "${project.fabric_version}")
-	modRuntime(fabricApi.module("fabric-screen-api-v1", "${project.fabric_version}"))
-	modImplementation("com.terraformersmc:modmenu:2.0.3") {
+	modRuntimeOnly(fabricApi.module("fabric-screen-api-v1", "${project.fabric_version}"))
+	modImplementation("com.terraformersmc:modmenu:4.0.0") {
 		transitive = false
 	}
 }

@@ -14,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import tf.ssf.sfort.survivalflight.Config;
-import tf.ssf.sfort.survivalflight.SPEA;
 
 @Mixin(LivingEntity.class)
 public abstract class FallFlyTick extends Entity {
@@ -32,7 +31,7 @@ public abstract class FallFlyTick extends Entity {
             boolean bl = this.getFlag(7);
             if (bl && !this.onGround && !this.hasVehicle() && !this.hasStatusEffect(StatusEffects.LEVITATION) && Config.canElytraFly.test((ServerPlayerEntity) (Object) this)){
                 if ((this.roll + 1) % 10 == 0)
-                    this.emitGameEvent(GameEvent.ELYTRA_FREE_FALL);
+                    this.emitGameEvent(GameEvent.ELYTRA_GLIDE);
 
             }else {
                 if(bl) Config.exitElytra.accept((ServerPlayerEntity) (Object) this);

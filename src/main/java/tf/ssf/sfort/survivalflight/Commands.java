@@ -1,13 +1,13 @@
 package tf.ssf.sfort.survivalflight;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.command.ServerCommandSource;
 
 public class Commands {
     public static void register(){
         try {
-            CommandRegistrationCallback.EVENT.register((dispatcher, dedi) -> {
+            CommandRegistrationCallback.EVENT.register((dispatcher, dedi, environment) -> {
                 LiteralArgumentBuilder<ServerCommandSource> ssf = LiteralArgumentBuilder.literal("survivalflight");
                 dispatcher.register(ssf.then(LiteralArgumentBuilder.<ServerCommandSource>literal("reload")
                                         .requires(pred -> pred.hasPermissionLevel(2))

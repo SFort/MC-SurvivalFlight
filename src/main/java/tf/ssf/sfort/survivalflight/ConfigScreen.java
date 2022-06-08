@@ -3,22 +3,22 @@ package tf.ssf.sfort.survivalflight;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import tf.ssf.sfort.script.Default;
 import tf.ssf.sfort.script.ScriptingScreen;
 
 public class ConfigScreen extends Screen {
     final Screen screen;
     ConfigScreen(Screen parent) {
-        super(new LiteralText("Survival Flight"));
+        super(Text.of("Survival Flight"));
         this.screen = parent;
     }
     @Override
     public void init(){
-        addDrawableChild(new ButtonWidget(width/2-75, height/2-30, 150, 20, new LiteralText("Survival Flight Script"),
+        addDrawableChild(new ButtonWidget(width/2-75, height/2-30, 150, 20, Text.of("Survival Flight Script"),
                 p ->{
                     client.setScreen(new ScriptingScreen(
-                            new LiteralText("Survival Flight Script"),
+                            Text.of("Survival Flight Script"),
                             this,
                             new ScriptingScreen.Script(
                                     "§bSurvival Flight",
@@ -30,10 +30,10 @@ public class ConfigScreen extends Screen {
                             )
                     ));
                 }));
-        addDrawableChild(new ButtonWidget(width/2-75, height/2-10, 150, 20, new LiteralText("Elytra Flight Script"),
+        addDrawableChild(new ButtonWidget(width/2-75, height/2-10, 150, 20, Text.of("Elytra Flight Script"),
                 p ->{
                     client.setScreen(new ScriptingScreen(
-                            new LiteralText("Elytra Flight Script"),
+                            Text.of("Elytra Flight Script"),
                             this,
                             new ScriptingScreen.Script(
                                     "§bSurvival Flight - Elytra Flight",
@@ -45,10 +45,10 @@ public class ConfigScreen extends Screen {
                             )
                     ));
                 }));
-        addDrawableChild(new ButtonWidget(width/2-75, height/2+10, 150, 20, new LiteralText("Firework Boost Script"),
+        addDrawableChild(new ButtonWidget(width/2-75, height/2+10, 150, 20, Text.of("Firework Boost Script"),
                 p ->{
                     client.setScreen(new ScriptingScreen(
-                            new LiteralText("Survival Flight Script"),
+                            Text.of("Survival Flight Script"),
                             this,
                             new ScriptingScreen.Script(
                                     "§bSurvival Flight - Firework Boost",
@@ -75,7 +75,7 @@ public class ConfigScreen extends Screen {
         fill(matrix, x+260-1, y, x+260, y+130, -1);
     }
     @Override
-    public void onClose(){
+    public void close(){
         client.setScreen(screen);
     }
 }

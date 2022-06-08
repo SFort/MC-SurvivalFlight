@@ -1,8 +1,8 @@
 package tf.ssf.sfort.survivalflight;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.fabricmc.fabric.api.client.command.v1.ClientCommandManager;
-import net.fabricmc.fabric.api.client.command.v1.FabricClientCommandSource;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.MinecraftClient;
 
 public class CommandsClient {
@@ -13,7 +13,7 @@ public class CommandsClient {
                 MinecraftClient.getInstance().send(()->MinecraftClient.getInstance().setScreen(new ConfigScreen(null)));
                 return 1;
             }));
-            ClientCommandManager.DISPATCHER.register(command);
+            ClientCommandManager.getActiveDispatcher().register(command);
         }catch (Exception igore){
             System.out.println("\n\n\n"+igore);
         }
