@@ -1,7 +1,7 @@
 package tf.ssf.sfort.survivalflight;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.MinecraftClient;
 
@@ -13,7 +13,9 @@ public class CommandsClient {
                 MinecraftClient.getInstance().send(()->MinecraftClient.getInstance().setScreen(new ConfigScreen(null)));
                 return 1;
             }));
-            ClientCommandManager.getActiveDispatcher().register(command);
+            ClientCommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess) -> {
+                dispatcher.register(command);
+            }));
         }catch (Exception igore){
             System.out.println("\n\n\n"+igore);
         }

@@ -120,7 +120,7 @@
         @Override
 		public void onInitialize() {
         	reload_settings();
-			if (FabricLoader.getInstance().isModLoaded("fabric-command-api-v1") && registerCommands){
+			if (FabricLoader.getInstance().isModLoaded("fabric-command-api-v2") && registerCommands){
 				if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT)
 					CommandsClient.registerClient();
 				Commands.register();
