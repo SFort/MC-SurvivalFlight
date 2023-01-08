@@ -3,13 +3,11 @@
 	import net.fabricmc.api.EnvType;
 	import net.fabricmc.api.ModInitializer;
 	import net.fabricmc.loader.api.FabricLoader;
-	import net.minecraft.entity.damage.DamageSource;
 	import net.minecraft.entity.effect.StatusEffect;
 	import net.minecraft.entity.effect.StatusEffectInstance;
+	import net.minecraft.registry.Registries;
 	import net.minecraft.server.network.ServerPlayerEntity;
 	import net.minecraft.util.Identifier;
-	import net.minecraft.util.registry.SimpleRegistry;
-	import net.minecraft.world.GameMode;
 	import org.apache.commons.io.FileUtils;
 	import org.apache.logging.log4j.Level;
 	import org.apache.logging.log4j.LogManager;
@@ -17,7 +15,6 @@
 	import tf.ssf.sfort.script.Default;
 	import tf.ssf.sfort.script.Help;
 	import tf.ssf.sfort.script.ScriptParser;
-	import tf.ssf.sfort.script.StitchedPredicateProvider;
 	import tf.ssf.sfort.survivalflight.mixin.MixinConfig;
 
 	import java.io.File;
@@ -195,7 +192,7 @@
 				try{
 					int indx = ls[i].indexOf(";");
 					int duration = Integer.parseInt(ls[i].substring(indx+1));
-					StatusEffect exit_effect = SimpleRegistry.STATUS_EFFECT.get(new Identifier(ls[i].substring(0,indx)));
+					StatusEffect exit_effect = Registries.STATUS_EFFECT.get(new Identifier(ls[i].substring(0,indx)));
 					exit = exit.andThen((player) -> player.addStatusEffect(new StatusEffectInstance(exit_effect, duration)));
 				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
 				i+=2;
@@ -226,7 +223,7 @@
 				try{
 					int indx = ls[i].indexOf(";");
 					int duration = Integer.parseInt(ls[i].substring(indx+1));
-					StatusEffect exit_effect = SimpleRegistry.STATUS_EFFECT.get(new Identifier(ls[i].substring(0,indx)));
+					StatusEffect exit_effect = Registries.STATUS_EFFECT.get(new Identifier(ls[i].substring(0,indx)));
 					exitElytra = exitElytra.andThen((player) -> player.addStatusEffect(new StatusEffectInstance(exit_effect, duration)));
 				}catch (Exception e){ if(existing)LOGGER.log(Level.WARN, MOD_ID +" #"+i+"\n"+e); }
 				i+=2;

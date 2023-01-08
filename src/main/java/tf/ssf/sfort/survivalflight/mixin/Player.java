@@ -1,17 +1,14 @@
 package tf.ssf.sfort.survivalflight.mixin;
 
 import com.mojang.authlib.GameProfile;
-import net.minecraft.block.Block;
 import net.minecraft.entity.player.PlayerAbilities;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.encryption.PlayerPublicKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -34,8 +31,8 @@ public abstract class Player extends PlayerEntity implements SPEA {
 	protected int bf$cdist = 0;
 	protected int bf$cticksLeft = 0;
 
-	public Player(World world, BlockPos pos, float yaw, GameProfile gameProfile, @Nullable PlayerPublicKey publicKey) {
-		super(world, pos, yaw, gameProfile, publicKey);
+	public Player(World world, BlockPos pos, float yaw, GameProfile gameProfile) {
+		super(world, pos, yaw, gameProfile);
 	}
 
 	@Inject(method = "tick", at = @At("HEAD"))
