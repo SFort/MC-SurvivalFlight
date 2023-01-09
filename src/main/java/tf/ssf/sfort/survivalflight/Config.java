@@ -302,19 +302,6 @@ public class Config implements ModInitializer {
 		}
 	}
 
-	public static final List<String> defaultDesc = Arrays.asList(
-			"^-Generate Script Help? [true] true | ludicrous | false //note that some values are only available while in a world you can get them by running /ssf load survivalflight then disabling this setting",
-			"^-Xp consumed per tick [0] 0 - ..",
-			"^-Consume 1XP per X ticks [0] 0 - .. // if you prefer decimals/tick putting in for e.g.: 0.2 xp/t will auto translate",
-			"^-Apply effect to player on mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
-			"^-Required beacon level for beacon setting [0] 1-4",
-			"^-Add reload settings command [true] true | false // (changing setting needs game restart)",
-			"^-Flight duration in ticks before cool-down starts [0]",
-			"^-Flight cool-down in ticks [0]",
-			"^-Apply effect to player on elytra mid-flight condition failure [] EffectID;tick_duration //e.g. slow_falling;20",
-			"^-Allow gliding without an elytra [false] true | false | fapi //WARNING disables vanilla elytra and Requires mod to be installed on client and server. (changing setting needs game restart).",
-			"^-Enable PlayerAbilityLib compatibility [true] true | false //change if you need survival flight to disable other mods flight implementations"
-	);
 	public static final String scriptHelp = """
 				Lines are ignored.
 				Available operations:
