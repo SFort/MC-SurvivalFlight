@@ -69,7 +69,7 @@ public class ConfigScreen extends Screen {
 		this.renderBackground(matrix);
 		super.render(matrix, mouseX, mouseY, delta);
 		textRenderer.drawWithShadow(matrix,"UI doesn't allow editing non-scripting options yet", width/2-123, height/2-70, -1);
-		textRenderer.drawWithShadow(matrix,".minecraft/config/SurvivalFlight/general.conf", width/2-115, height/2-50, -1);
+		textRenderer.drawWithShadow(matrix,".minecraft/config/SurvivalFlight/general.sf.ini", width/2-115, height/2-50, -1);
 		fill(matrix, x, y, x+260, y+1, -1);
 		fill(matrix, x, y, x+1, y+130, -1);
 		fill(matrix, x, y+130-1, x+260, y+130, -1);

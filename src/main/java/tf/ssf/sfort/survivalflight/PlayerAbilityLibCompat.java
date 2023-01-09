@@ -2,6 +2,7 @@ package tf.ssf.sfort.survivalflight;
 
 import net.minecraft.entity.player.PlayerEntity;
 import org.apache.logging.log4j.Level;
+import tf.ssf.sfort.survivalflight.mixin.MixinConfig;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -25,7 +26,7 @@ public class PlayerAbilityLibCompat {
             revoke = source.getMethod("revokeFrom", PlayerEntity.class, ability);
         } catch (Exception e) {
             Config.borkedPlayerAbilityLib();
-            Config.LOGGER.log(Level.WARN, "PlayerAbilityLib borked");
+            MixinConfig.LOGGER.log(Level.WARN, "PlayerAbilityLib borked");
         }
     }
     public static void grant(PlayerEntity player) throws InvocationTargetException, IllegalAccessException {
@@ -49,7 +50,7 @@ public class PlayerAbilityLibCompat {
                 }
             }catch (Exception e){
                 Config.borkedPlayerAbilityLib();
-                Config.LOGGER.log(Level.WARN, "PlayerAbilityLib borked");
+                MixinConfig.LOGGER.log(Level.WARN, "PlayerAbilityLib borked");
             }
         };
     }
@@ -70,7 +71,7 @@ public class PlayerAbilityLibCompat {
                 }
             }catch (Exception e){
                 Config.borkedPlayerAbilityLib();
-                Config.LOGGER.log(Level.WARN, "PlayerAbilityLib borked");
+                MixinConfig.LOGGER.log(Level.WARN, "PlayerAbilityLib borked");
             }
         };
     }

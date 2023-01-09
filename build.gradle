@@ -25,6 +25,7 @@ dependencies {
 	modImplementation ("tf.ssf.sfort:fscript:${project.fscript_version}"){
 		transitive = false
 	}
+	modImplementation include ("tf.ssf.sfort.ini:SF-INI:${project.sfini_version}")
 	modImplementation fabricApi.module("fabric-command-api-v2", "${project.fabric_version}")
 	modImplementation fabricApi.module("fabric-entity-events-v1", "${project.fabric_version}")
 
