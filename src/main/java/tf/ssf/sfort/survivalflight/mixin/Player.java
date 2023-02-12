@@ -88,11 +88,14 @@ public abstract class Player extends PlayerEntity implements SPEA {
 	@Override
 	public void bf$fall() {
 		PlayerAbilities abilities = getAbilities();
-		if (abilities.flying)
-			Config.exit.accept((ServerPlayerEntity) (Object)this);
+		if (abilities.flying) bf$exit();
 		abilities.allowFlying = false;
 		abilities.flying = false;
 		sendAbilitiesUpdate();
+	}
+	@Override
+	public void bf$exit() {
+		Config.exit.accept((ServerPlayerEntity) (Object)this);
 	}
 	@Override
 	public void bf$tickXP(){

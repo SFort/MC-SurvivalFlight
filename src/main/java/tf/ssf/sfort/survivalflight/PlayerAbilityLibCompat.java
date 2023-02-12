@@ -46,6 +46,7 @@ public class PlayerAbilityLibCompat {
                     if (!grants(splayer))
                         grant(splayer);
                 } else if (player.bf$isSurvivalLike() && grants(splayer)) {
+                    player.bf$exit();
                     revoke(splayer);
                 }
             }catch (Exception e){
@@ -63,10 +64,13 @@ public class PlayerAbilityLibCompat {
                         grant(splayer);
                     if (splayer.getAbilities().flying) {
                         player.bf$tickXP();
-                        if (splayer.totalExperience == 0 && splayer.experienceLevel == 0)
+                        if (splayer.totalExperience == 0 && splayer.experienceLevel == 0) {
+                            player.bf$exit();
                             revoke(splayer);
+                        }
                     }
                 } else if (player.bf$isSurvivalLike() && grants(splayer)) {
+                    player.bf$exit();
                     revoke(splayer);
                 }
             }catch (Exception e){
