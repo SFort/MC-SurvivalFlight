@@ -46,7 +46,9 @@ public class PlayerAbilityLibCompat {
                     if (!grants(splayer))
                         grant(splayer);
                 } else if (player.bf$isSurvivalLike() && grants(splayer)) {
-                    player.bf$exit();
+                    if (splayer.getAbilities().flying) {
+                        player.bf$exit();
+                    }
                     revoke(splayer);
                 }
             }catch (Exception e){
@@ -70,7 +72,9 @@ public class PlayerAbilityLibCompat {
                         }
                     }
                 } else if (player.bf$isSurvivalLike() && grants(splayer)) {
-                    player.bf$exit();
+                    if (splayer.getAbilities().flying) {
+                        player.bf$exit();
+                    }
                     revoke(splayer);
                 }
             }catch (Exception e){
