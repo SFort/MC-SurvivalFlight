@@ -8,6 +8,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,6 +16,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import tf.ssf.sfort.survivalflight.BeaconPingDOSLList;
 import tf.ssf.sfort.survivalflight.Config;
 import tf.ssf.sfort.survivalflight.SPEA;
 
@@ -23,10 +25,9 @@ public abstract class Player extends PlayerEntity implements SPEA {
 	@Shadow
 	@Final
 	public ServerPlayerInteractionManager interactionManager;
-	protected int bf$ticksLeft = 0;
 	protected int bf$ticksXp = 0;
 	protected int bf$timed = 0;
-	protected Box bf$ping;
+	protected BeaconPingDOSLList<Box> bf$ping = new BeaconPingDOSLList<>();
 	protected BlockPos bf$cping;
 	protected int bf$cdist = 0;
 	protected int bf$cticksLeft = 0;
@@ -46,9 +47,7 @@ public abstract class Player extends PlayerEntity implements SPEA {
 
 	@Override
 	public void bf$beaconPing(Box box, int duration) {
-		if (bf$ping == null || !bf$ping.contains(this.getPos()) || box.getCenter().distanceTo(this.getPos()) < bf$ping.getCenter().distanceTo(this.getPos()))
-			bf$ping = box;
-		bf$ticksLeft = duration;
+		bf$ping.add(box, duration);
 	}
 
 	@Override
@@ -66,11 +65,12 @@ public abstract class Player extends PlayerEntity implements SPEA {
 	}
 	@Override
 	public boolean bf$hasBeaconTicks(){
-		return bf$ticksLeft>0;
+		return bf$ping.first != null;
 	}
 	@Override
 	public boolean bf$hasBeaconPing(){
-		return bf$ping != null && bf$ping.contains(this.getPos());
+		Vec3d pos = this.getPos();
+		return bf$ping.anyMatch(b->b.contains(pos));
 	}
 	@Override
 	public boolean bf$hasConduitTicks(){
@@ -111,7 +111,7 @@ public abstract class Player extends PlayerEntity implements SPEA {
 	}
 	@Override
 	public void bf$tickBeacon(){
-		if (bf$ticksLeft>0)bf$ticksLeft--;
+		bf$ping.tick();
 	}
 	@Override
 	public void bf$tickConduit(){
@@ -136,32 +136,71 @@ public abstract class Player extends PlayerEntity implements SPEA {
 	public void load(NbtCompound nbt, CallbackInfo ci){
 		NbtCompound tag = nbt.getCompound("SurvivalFlight");
 		if (tag!=null){
-			bf$ticksLeft = tag.getInt("ticksLeft");
 			bf$ticksXp = tag.getInt("ticksXp");
 			bf$timed = tag.getInt("timed");
-			if(tag.contains("ping$sx") && tag.contains("ping$bx")
+			bf$cdist = tag.getInt("cdist");
+			bf$cticksLeft = tag.getInt("cticksleft");
+			if (tag.contains("cping$x") && tag.contains("cping$y") && tag.contains("cping$z")) {
+				bf$cping = new BlockPos(tag.getInt("cping$x"), tag.getInt("cping$y"), tag.getInt("cping$z"));
+			} else {
+				bf$cping = null;
+			}
+			if (tag.contains("pings")) {
+				bf$ping.first = null;
+				NbtCompound pin = tag.getCompound("pings");
+				int i = 0;
+				NbtCompound bb = pin.getCompound(Integer.toString(i++));
+				BeaconPingDOSLList.Node<Box> next = null;
+				while (bb.contains("sx") && bb.contains("bx")
+						&& bb.contains("sy") && bb.contains("by")
+						&& bb.contains("sz") && bb.contains("bz")) {
+					BeaconPingDOSLList.Node<Box> a = new BeaconPingDOSLList.Node<>(new Box(
+							tag.getDouble("sx"), tag.getDouble("sy"), tag.getDouble("sz"),
+							tag.getDouble("bx"), tag.getDouble("by"), tag.getDouble("bz")
+					), tag.getInt("delay"), null);
+					if (next == null) next = bf$ping.first = a;
+					else next = (next.next = a);
+					bb = pin.getCompound(Integer.toString(i++));
+				}
+
+			} else if(tag.contains("ping$sx") && tag.contains("ping$bx")
 			&& tag.contains("ping$sy") && tag.contains("ping$by")
 			&& tag.contains("ping$sz") && tag.contains("ping$bz")){
-				bf$ping = new Box(
+				bf$ping.first = new BeaconPingDOSLList.Node<>(new Box(
 						tag.getDouble("ping$sx"), tag.getDouble("ping$sy"), tag.getDouble("ping$sz"),
-						tag.getDouble("ping$bx"), tag.getDouble("ping$by"), tag.getDouble("ping#bz")
-				);
+						tag.getDouble("ping$bx"), tag.getDouble("ping$by"), tag.getDouble("ping$bz")
+				), tag.getInt("ticksLeft"), null);
 			}
 		}
 	}
 	@Inject(method = "writeCustomDataToNbt(Lnet/minecraft/nbt/NbtCompound;)V", at = @At("TAIL"))
 	public void save(NbtCompound nbt, CallbackInfo ci){
 		NbtCompound tag = new NbtCompound();
-		tag.putInt("ticksLeft", bf$ticksLeft);
 		tag.putInt("ticksXp", bf$ticksXp);
 		tag.putInt("timed", bf$timed);
-		if (bf$ping!=null) {
-			tag.putDouble("ping$sx", bf$ping.minX);
-			tag.putDouble("ping$bx", bf$ping.maxX);
-			tag.putDouble("ping$sy", bf$ping.minY);
-			tag.putDouble("ping$by", bf$ping.maxY);
-			tag.putDouble("ping$sz", bf$ping.minZ);
-			tag.putDouble("ping$bz", bf$ping.maxZ);
+		tag.putInt("cdist", bf$cdist);
+		tag.putInt("cticksleft", bf$cticksLeft);
+		if (bf$cping != null) {
+			tag.putInt("cping$x", bf$cping.getX());
+			tag.putInt("cping$y", bf$cping.getY());
+			tag.putInt("cping$z", bf$cping.getZ());
+		}
+		if (bf$ping.first != null) {
+			NbtCompound pin = new NbtCompound();
+			int i = 0;
+			for (BeaconPingDOSLList.Node<Box> n = bf$ping.first; n!=null; n = n.next) {
+				NbtCompound bb = new NbtCompound();
+				Box b = n.obj;
+				bb.putDouble("sx", b.minX);
+				bb.putDouble("bx", b.maxX);
+				bb.putDouble("sy", b.minY);
+				bb.putDouble("by", b.maxY);
+				bb.putDouble("sz", b.minZ);
+				bb.putDouble("bz", b.maxZ);
+				bb.putInt("delay", n.i);
+				pin.put(Integer.toString(i++), bb);
+			}
+			tag.put("pings", pin);
 		}
 		nbt.put("SurvivalFlight", tag);
 	}
