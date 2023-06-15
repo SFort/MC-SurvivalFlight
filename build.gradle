@@ -34,7 +34,7 @@ dependencies {
 	modImplementation fabricApi.module("fabric-key-binding-api-v1", "${project.fabric_version}")
 	modImplementation fabricApi.module("fabric-lifecycle-events-v1", "${project.fabric_version}")
 	modRuntimeOnly(fabricApi.module("fabric-screen-api-v1", "${project.fabric_version}"))
-	modImplementation("com.terraformersmc:modmenu:5.0.2") {
+	modImplementation("com.terraformersmc:modmenu:7.0.1") {
 		transitive = false
 	}
 }

@@ -29,7 +29,7 @@ public abstract class FallFlyTick extends Entity {
     private void scriptCheck(CallbackInfo ci) {
         if (((Object)this) instanceof ServerPlayerEntity && Config.canElytraFly != null) {
             boolean bl = this.getFlag(7);
-            if (bl && !this.onGround && !this.hasVehicle() && !this.hasStatusEffect(StatusEffects.LEVITATION) && Config.canElytraFly.test((ServerPlayerEntity) (Object) this)){
+            if (bl && !this.isOnGround() && !this.hasVehicle() && !this.hasStatusEffect(StatusEffects.LEVITATION) && Config.canElytraFly.test((ServerPlayerEntity) (Object) this)){
                 if ((this.roll + 1) % 10 == 0)
                     this.emitGameEvent(GameEvent.ELYTRA_GLIDE);
 
