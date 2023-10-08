@@ -66,7 +66,7 @@ public class ConfigScreen extends Screen {
 	public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
 		int x = width/2-130;
 		int y = height/2-80;
-		this.renderBackground(drawContext);
+		this.renderBackground(drawContext, mouseX, mouseY, delta);
 		super.render(drawContext, mouseX, mouseY, delta);
 		drawContext.drawTextWithShadow(textRenderer,"UI doesn't allow editing non-scripting options yet", width/2-123, height/2-70, -1);
 		drawContext.drawTextWithShadow(textRenderer,".minecraft/config/SurvivalFlight/general.sf.ini", width/2-115, height/2-50, -1);
