@@ -59,6 +59,8 @@ public class ConfigLoader {
 				"allowGlideWithoutElytra=false",
 				"; Enable PlayerAbilityLib compatibility [true] true | false",
 				"playerAbilityLibCompat=true",
+				"; Adds a command to set scripts [true] true | false",
+				"allowWritingServerConfigs=true",
 		}));
 		loadLegacy(defIni);
 

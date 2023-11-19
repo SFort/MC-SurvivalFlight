@@ -37,6 +37,7 @@ public class Config implements ModInitializer {
 	private static boolean registerCommands = true;
 	private static boolean registerPlayerAbilityLib = true;
 	public static boolean keepPlayerAbilityLib = true;
+	public static boolean allowWritingServerConfigs = true;
 	public static final Predicate<ServerPlayerEntity> canFly_init = player -> ((SPEA)player).bf$isSurvivalLike();
 	public static final Consumer<ServerPlayerEntity> tick_init = splayer-> {
 		SPEA player = (SPEA) splayer;
@@ -228,6 +229,13 @@ public class Config implements ModInitializer {
 			SFIni.Data data = ini.getLastData("playerAbilityLibCompat");
 			if (data != null) data.val = Boolean.toString(registerPlayerAbilityLib);
 			MixinConfig.LOGGER.log(Level.WARN, MixinConfig.MOD_ID +" failed to load playerAbilityLibCompat, setting to last valid value", e);
+		}
+		try {
+			allowWritingServerConfigs = ini.getBoolean("allowWritingServerConfigs");
+		} catch (IllegalArgumentException e) {
+			SFIni.Data data = ini.getLastData("allowWritingServerConfigs");
+			if (data != null) data.val = Boolean.toString(allowWritingServerConfigs);
+			MixinConfig.LOGGER.log(Level.WARN, MixinConfig.MOD_ID +" failed to load allowWritingServerConfigs, setting to last valid value", e);
 		}
 		MixinConfig.LOGGER.log(Level.INFO, MixinConfig.MOD_ID +" successfully loaded config file");
 	}
